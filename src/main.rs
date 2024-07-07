@@ -4,8 +4,11 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
+    use eframe_template::db;
+
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
+    db::init_db().expect("Failed to initialize database");
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([400.0, 300.0])
