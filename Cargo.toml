@@ -20,7 +20,7 @@ eframe = { version = "0.28", default-features = false, features = [
 ] }
 log = "0.4"
 
-rusqlite = { version = "0.31.0", features = ["bundled-sqlcipher"] }
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 lazy_static = "1.4.0"
 
 # You only need serde if you want app persistence:
