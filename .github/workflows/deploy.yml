@@ -12,7 +12,9 @@ jobs:
 
     - name: Debug File Structure
       run: |
+        echo "Root Directory:"
         ls -la
+        echo "Frontend Directory:"
         ls -la frontend
 
     - name: Install system dependencies
@@ -39,9 +41,8 @@ jobs:
 
     - name: Build Frontend and Backend
       run: |
-        cd frontend
-        ../build.sh
-        cd ../backend
+        ./build.sh
+        cd backend
         cargo build --release
 
     - name: Deploy Frontend to Droplet
@@ -50,7 +51,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "dist/*"
+        source: "frontend/dist/*"
         target: "/var/www/your_app/frontend"
         strip_components: 2
 
