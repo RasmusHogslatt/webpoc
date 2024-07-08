@@ -7,4 +7,5 @@
 [toolchain]
 channel = "1.76.0"
 components = [ "rustfmt", "clippy" ]
-targets = [ "wasm32-unknown-unknown" ]
+targets = [ "wasm32-wasi" ]
+#targets = [ "wasm32-unknown-unknown" ]
