@@ -1,0 +1,11 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.0"
+rusqlite = { version = "0.31.0", features = ["bundled-sqlcipher"] }
+shared = { path = "../shared" }
+dotenv = "0.15"
+env_logger = "0.10"
