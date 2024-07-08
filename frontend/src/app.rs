@@ -1,12 +1,15 @@
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use shared::User;
+use std::future::Future;
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct TemplateApp {
     username: String,
     password: String,
     login_status: Option<bool>,
+    #[serde(skip)]
     client: Client,
 }
 
@@ -21,6 +24,20 @@ impl Default for TemplateApp {
     }
 }
 
+// Add this helper function
+#[cfg(target_arch = "wasm32")]
+fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
+    wasm_bindgen_futures::spawn_local(future);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(future);
+    });
+}
+
 impl TemplateApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         if let Some(storage) = cc.storage {
@@ -29,13 +46,27 @@ impl TemplateApp {
         Default::default()
     }
 
-    async fn verify_user(&self) -> Result<bool, reqwest::Error> {
-        let user = User {
-            username: self.username.clone(),
-            password: self.password.clone(),
-        };
-        let response = self
-            .client
+    // async fn verify_user(&self) -> Result<bool, reqwest::Error> {
+    //     let user = User {
+    //         username: self.username.clone(),
+    //         password: self.password.clone(),
+    //     };
+    //     let response = self
+    //         .client
+    //         .post("http://localhost:8080/api/login")
+    //         .json(&user)
+    //         .send()
+    //         .await?;
+
+    //     Ok(response.status().is_success())
+    // }
+    async fn verify_user(
+        username: String,
+        password: String,
+        client: &Client,
+    ) -> Result<bool, reqwest::Error> {
+        let user = User { username, password };
+        let response = client
             .post("http://localhost:8080/api/login")
             .json(&user)
             .send()
@@ -63,24 +94,28 @@ impl eframe::App for TemplateApp {
                 ui.text_edit_singleline(&mut self.password);
             });
             if ui.button("Sign in").clicked() {
-                let future = self.verify_user();
+                let username = self.username.clone();
+                let password = self.password.clone();
+                let client = self.client.clone();
                 let ctx = ctx.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    match future.await {
+                spawn_task(async move {
+                    match Self::verify_user(username, password, &client).await {
                         Ok(is_valid) => {
-                            let mut app = TemplateApp::default(); // This is a hack, you might want to use a better state management solution
-                            app.login_status = Some(is_valid);
                             ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("login_status".into(), is_valid)
+                            });
                         }
                         Err(_) => {
-                            let mut app = TemplateApp::default();
-                            app.login_status = Some(false);
                             ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("login_status".into(), false)
+                            });
                         }
                     }
                 });
             }
-            if let Some(status) = self.login_status {
+            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
                 if status {
                     ui.label("Login successful!");
                 } else {
