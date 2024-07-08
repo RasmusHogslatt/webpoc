@@ -1,0 +1,30 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+egui = "0.28"
+eframe = { version = "0.28", default-features = false, features = [
+    "accesskit",
+    "default_fonts",
+    "glow",
+    "persistence",
+] }
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+shared = { path = "../shared" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.10"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3.4"
+
+[profile.release]
+opt-level = 2
+
+[profile.dev.package."*"]
+opt-level = 2

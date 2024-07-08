@@ -1,39 +1,45 @@
-use crate::db;
+use reqwest::Client;
+use shared::User;
 
-#[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)]
 pub struct TemplateApp {
     username: String,
     password: String,
-    #[serde(skip)]
     login_status: Option<bool>,
+    client: Client,
 }
 
 impl Default for TemplateApp {
     fn default() -> Self {
         Self {
-            username: "".to_owned(),
-            password: "".to_owned(),
+            username: String::new(),
+            password: String::new(),
             login_status: None,
+            client: Client::new(),
         }
     }
 }
 
 impl TemplateApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // Initialize the database
-        db::init_db().expect("Failed to initialize database");
-
-        // Add a default user (you can remove this in production)
-        let _ = db::add_user("admin", "admin");
-        let _ = db::add_user("user1", "user1");
-        let _ = db::add_user("user2", "user2");
-
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
-
         Default::default()
+    }
+
+    async fn verify_user(&self) -> Result<bool, reqwest::Error> {
+        let user = User {
+            username: self.username.clone(),
+            password: self.password.clone(),
+        };
+        let response = self
+            .client
+            .post("http://localhost:8080/api/login")
+            .json(&user)
+            .send()
+            .await?;
+
+        Ok(response.status().is_success())
     }
 }
 
@@ -55,10 +61,22 @@ impl eframe::App for TemplateApp {
                 ui.text_edit_singleline(&mut self.password);
             });
             if ui.button("Sign in").clicked() {
-                match db::verify_user(&self.username, &self.password) {
-                    Ok(is_valid) => self.login_status = Some(is_valid),
-                    Err(_) => self.login_status = Some(false),
-                }
+                let future = self.verify_user();
+                let ctx = ctx.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    match future.await {
+                        Ok(is_valid) => {
+                            let mut app = TemplateApp::default(); // This is a hack, you might want to use a better state management solution
+                            app.login_status = Some(is_valid);
+                            ctx.request_repaint();
+                        }
+                        Err(_) => {
+                            let mut app = TemplateApp::default();
+                            app.login_status = Some(false);
+                            ctx.request_repaint();
+                        }
+                    }
+                });
             }
             if let Some(status) = self.login_status {
                 if status {

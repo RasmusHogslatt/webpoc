@@ -15,12 +15,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y clang llvm libudev-dev libssl-dev pkg-config
 
-    - name: Setup toolchain for wasm
-      run: |
-        rustup update stable
-        rustup default stable
-        rustup set profile minimal
-        rustup target add wasm32-unknown-unknown
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        target: wasm32-unknown-unknown
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2
@@ -28,14 +29,54 @@ jobs:
     - name: Download and install Trunk binary
       run: wget -qO- https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
 
-    - name: Build
-      run: ./trunk build --release
+    - name: Build Frontend
+      run: |
+        cd frontend
+        ../trunk build --release
 
-    - name: Deploy to Droplet
+    - name: Build Backend
+      run: |
+        cd backend
+        cargo build --release
+
+    - name: Deploy Frontend to Droplet
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "dist/*"
-        target: "/var/www/your_app"
+        source: "frontend/dist/*"
+        target: "/var/www/your_app/frontend"
+        strip_components: 2
+
+    - name: Deploy Backend to Droplet
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DROPLET_USER }}
+        key: ${{ secrets.DROPLET_SSH_KEY }}
+        source: "backend/target/release/backend"
+        target: "/var/www/your_app/backend"
+        strip_components: 3
+
+    - name: Restart Backend Service
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DROPLET_USER }}
+        key: ${{ secrets.DROPLET_SSH_KEY }}
+        script: |
+          sudo systemctl restart your_backend_service
+          sudo systemctl status your_backend_service
+
+    - name: Update Nginx Configuration
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DROPLET_USER }}
+        key: ${{ secrets.DROPLET_SSH_KEY }}
+        script: |
+          sudo cp /var/www/your_app/nginx.conf /etc/nginx/sites-available/your_app
+          sudo ln -sf /etc/nginx/sites-available/your_app /etc/nginx/sites-enabled/
+          sudo nginx -t
+          sudo systemctl reload nginx
