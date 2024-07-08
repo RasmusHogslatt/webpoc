@@ -1,12 +1,12 @@
 #!/bin/bash
-set -e
+   set -e
 
-# Build the WebAssembly binary
-cargo build --release --target wasm32-unknown-unknown
+   echo "Building frontend..."
+   cd frontend
+   trunk build --release
+   cd ..
 
-# Use wasm-bindgen to generate JavaScript bindings
-wasm-bindgen --out-dir ./dist --target web target/wasm32-unknown-unknown/release/your_app_name.wasm
-
-# Copy your index.html and any other static assets to the dist folder
-# cp index.html dist/
-# cp assets/* dist/
+   echo "Building backend..."
+   cd backend
+   cargo build --release
+   cd ..
