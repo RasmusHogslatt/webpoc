@@ -24,7 +24,7 @@ jobs:
           rustup update stable
           rustup default stable
           rustup set profile minimal
-          rustup target add wasm32-wasi
+          rustup target add wasm32-unknown-unknown
       - name: Rust Cache # cache the rust build artefacts
         uses: Swatinem/rust-cache@v2
       - name: Download and install Trunk binary
