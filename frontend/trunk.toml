@@ -1,7 +1,8 @@
+trunk-version = "*"
+
 [build]
 target = "index.html"
 dist = "../dist"
-version = "1.0"
 
 [watch]
 ignore = ["../dist/**"]
