@@ -1,6 +1,8 @@
 use reqwest::Client;
 use shared::User;
 
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(default)]
 pub struct TemplateApp {
     username: String,
     password: String,
