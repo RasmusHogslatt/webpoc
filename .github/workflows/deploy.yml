@@ -20,8 +20,7 @@ jobs:
         rustup update stable
         rustup default stable
         rustup set profile minimal
-        rust target add wasm32-wasi
-        # rustup target add wasm32-unknown-unknown
+        rustup target add wasm32-unknown-unknown
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2
