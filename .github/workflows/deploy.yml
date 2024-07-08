@@ -19,6 +19,19 @@ jobs:
         echo "Current working directory:"
         pwd
 
+    - name: Check and fix backend Cargo.toml
+      run: |
+          if [ ! -f backend/Cargo.toml ]; then
+            echo "Backend Cargo.toml not found!"
+            exit 1
+          fi
+          if ! grep -q "\[\[bin\]\]" backend/Cargo.toml && ! grep -q "\[lib\]" backend/Cargo.toml; then
+            echo "Adding [[bin]] section to backend Cargo.toml"
+            echo -e "\n[[bin]]\nname = \"backend\"\npath = \"src/main.rs\"" >> backend/Cargo.toml
+          fi
+          echo "Contents of backend Cargo.toml:"
+          cat backend/Cargo.toml
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
