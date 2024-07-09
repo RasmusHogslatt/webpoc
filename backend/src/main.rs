@@ -1,6 +1,10 @@
 mod api;
+mod db;
+
 use actix_cors::Cors;
 use actix_web::{App, HttpServer};
+
+use dotenv::dotenv;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
