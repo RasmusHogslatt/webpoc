@@ -7,10 +7,10 @@ pwd
 echo "Contents of current directory:"
 ls -la
 
-echo "Building shared.."
-echo "Contents of shared directory:"
-ls -la
-cargo build --release --package shared
+# echo "Building shared.."
+# echo "Contents of shared directory:"
+# ls -la
+# cargo build --release --package shared
 
 echo "Building frontend..."
 cd frontend || exit
@@ -21,11 +21,19 @@ trunk build --release
 cd ..
 
 echo "Building backend..."
-# Ensure target directory exists
-mkdir -p backend/target/release
+echo "Contents of backend directory:"
+cd backend || exit
+ls -la
+cd ..
 
-# Run cargo build from the root of the workspace
+# Run cargo build from the root for backend
 cargo build --release --package backend
+
+# Show target strucutre
+echo "Target directory structure:"
+cd target || exit
+find . -type d
+cd ..
 
 echo "Final directory structure:"
 find . -type d
