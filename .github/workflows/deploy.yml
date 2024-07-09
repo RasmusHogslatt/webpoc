@@ -67,6 +67,19 @@ jobs:
         echo "Size of backend binary:"
         du -h backend/target/release/backend
 
+    - name: Verify Backend Binary Before Deployment
+      run: |
+        if [ -f "backend/target/release/backend" ]; then
+          echo "Backend binary exists and its details are:"
+          ls -l backend/target/release/backend
+          file backend/target/release/backend
+        else
+          echo "ERROR: Backend binary does not exist!"
+          echo "Contents of backend/target/release:"
+          ls -la backend/target/release
+          exit 1
+        fi
+
     - name: Deploy Backend to Droplet
       uses: appleboy/scp-action@master
       with:
@@ -74,8 +87,21 @@ jobs:
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
         source: "backend/target/release/backend"
-        target: "/var/www/your_app/backend/"
-        strip_components: 3
+        target: "/var/www/your_app/backend/backend_binary"
+        strip_components: 0
+        debug: true
+
+    - name: Check Server Directory Structure
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DROPLET_USER }}
+        key: ${{ secrets.DROPLET_SSH_KEY }}
+        script: |
+          echo "Full directory structure of /var/www/your_app:"
+          find /var/www/your_app -type d
+          echo "All files in /var/www/your_app:"
+          find /var/www/your_app -type f
 
     - name: Verify Deployment
       uses: appleboy/ssh-action@master

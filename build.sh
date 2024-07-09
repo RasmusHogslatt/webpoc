@@ -35,5 +35,17 @@ echo "Size of backend binary:"
 du -h target/release/backend
 cd ..
 
+echo "Checking for backend binary:"
+if [ -f "backend/target/release/backend" ]; then
+    echo "Backend binary exists and its details are:"
+    ls -l backend/target/release/backend
+    file backend/target/release/backend
+else
+    echo "ERROR: Backend binary does not exist!"
+    echo "Contents of backend/target/release:"
+    ls -la backend/target/release
+    exit 1
+fi
+
 echo "Final directory structure:"
 find . -type d
