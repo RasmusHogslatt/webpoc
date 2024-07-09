@@ -67,19 +67,20 @@ jobs:
         echo "Contents of backend/target/release:"
         ls -la backend/target/release
         echo "Size of backend binary:"
-        du -h backend/target/release/backend
+        du -h $(find backend/target/release -maxdepth 1 -type f -executable) || echo "Backend binary not found"
 
     - name: Verify Backend Binary Before Deployment
       run: |
-        if [ -f "backend/target/release/backend" ]; then
-          echo "Backend binary exists and its details are:"
-          ls -l backend/target/release/backend
-          file backend/target/release/backend
-        else
+        BINARY=$(find backend/target/release -maxdepth 1 -type f -executable)
+        if [ -z "$BINARY" ]; then
           echo "ERROR: Backend binary does not exist!"
           echo "Contents of backend/target/release:"
           ls -la backend/target/release
           exit 1
+        else
+          echo "Backend binary exists and its details are:"
+          ls -l $BINARY
+          file $BINARY
         fi
 
     - name: Deploy Backend to Droplet
@@ -88,7 +89,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "backend/target/release/backend"
+        source: "$(find backend/target/release -maxdepth 1 -type f -executable)"
         target: "/var/www/your_app/backend/backend_binary"
         strip_components: 0
         debug: true

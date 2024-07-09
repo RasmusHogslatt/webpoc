@@ -16,37 +16,38 @@ trunk build --release
 cd ..
 
 echo "Building backend..."
-cd backend || exit
 echo "Contents of backend directory before build:"
-ls -la
+ls -la backend
 echo "Contents of backend/src directory:"
-ls -la src
+ls -la backend/src
 echo "Contents of backend Cargo.toml:"
-cat Cargo.toml
+cat backend/Cargo.toml
 
 # Ensure target directory exists
-mkdir -p target/release
+mkdir -p backend/target/release
 
+# Run cargo build from the root of the workspace
 cargo build --release
 
 echo "Contents of backend/target directory after build:"
-ls -la target
+ls -la backend/target
 echo "Contents of backend/target/release directory after build:"
-ls -la target/release
-echo "Size of backend binary:"
-du -h target/release/backend
-cd ..
+ls -la backend/target/release
 
-echo "Checking for backend binary:"
-if [ -f "backend/target/release/backend" ]; then
-    echo "Backend binary exists and its details are:"
-    ls -l backend/target/release/backend
-    file backend/target/release/backend
-else
+# Check for the presence of the binary
+echo "Searching for the backend binary..."
+BINARY=$(find backend/target/release -maxdepth 1 -type f -executable)
+if [ -z "$BINARY" ]; then
     echo "ERROR: Backend binary does not exist!"
     echo "Contents of backend/target/release:"
     ls -la backend/target/release
     exit 1
+else
+    echo "Backend binary found: $BINARY"
+    echo "Details of the backend binary:"
+    ls -l $BINARY
+    file $BINARY
+    du -h $BINARY
 fi
 
 echo "Final directory structure:"
