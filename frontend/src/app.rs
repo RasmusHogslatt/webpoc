@@ -179,20 +179,3 @@ impl eframe::App for TemplateApp {
         });
     }
 }
-
-impl TemplateApp {
-    async fn register_user(
-        username: String,
-        password: String,
-        client: Client,
-    ) -> Result<bool, reqwest::Error> {
-        let user = User { username, password };
-        let response = client
-            .post("http://:8080/api/register")
-            .json(&user)
-            .send()
-            .await?;
-
-        Ok(response.status().is_success())
-    }
-}
