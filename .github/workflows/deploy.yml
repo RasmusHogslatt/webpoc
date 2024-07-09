@@ -62,27 +62,6 @@ jobs:
         target: "/var/www/your_app/frontend"
         strip_components: 2
 
-    - name: Debug Backend Files
-      run: |
-        echo "Contents of backend/target/release:"
-        ls -la backend/target/release
-        echo "Size of backend binary:"
-        du -h $(find backend/target/release -maxdepth 1 -type f -executable) || echo "Backend binary not found"
-
-    - name: Verify Backend Binary Before Deployment
-      run: |
-        BINARY=$(find backend/target/release -maxdepth 1 -type f -executable)
-        if [ -z "$BINARY" ]; then
-          echo "ERROR: Backend binary does not exist!"
-          echo "Contents of backend/target/release:"
-          ls -la backend/target/release
-          exit 1
-        else
-          echo "Backend binary exists and its details are:"
-          ls -l $BINARY
-          file $BINARY
-        fi
-
     - name: Deploy Backend to Droplet
       uses: appleboy/scp-action@master
       with:
