@@ -1,8 +1,12 @@
+mod api;
 use actix_cors::Cors;
 use actix_web::{App, HttpServer};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Initialize the database
+    api::db::init_db().expect("Failed to initialize database");
+
     HttpServer::new(|| {
         let cors = Cors::default()
             .allow_any_origin()
