@@ -83,18 +83,6 @@ jobs:
           find /var/www/your_app -type d
           echo "All files in /var/www/your_app:"
           find /var/www/your_app -type f
-
-    - name: Verify Deployment
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.DROPLET_IP }}
-        username: ${{ secrets.DROPLET_USER }}
-        key: ${{ secrets.DROPLET_SSH_KEY }}
-        script: |
-          echo "Contents of /var/www/your_app/frontend:"
-          ls -la /var/www/your_app/frontend
-          echo "Contents of /var/www/your_app/backend:"
-          ls -la /var/www/your_app/backend
   
     - name: Set Permissions
       uses: appleboy/ssh-action@master
@@ -113,6 +101,7 @@ jobs:
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
         script: |
+          sudo systemctl daemon-reload
           sudo systemctl restart your_backend_service
           sudo systemctl status your_backend_service
 
