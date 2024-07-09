@@ -1,3 +1,4 @@
+use egui::Color32;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shared::User;
@@ -9,6 +10,7 @@ pub struct TemplateApp {
     username: String,
     password: String,
     login_status: Option<bool>,
+    registration_status: Option<bool>,
     #[serde(skip)]
     client: Client,
 }
@@ -19,12 +21,12 @@ impl Default for TemplateApp {
             username: String::new(),
             password: String::new(),
             login_status: None,
+            registration_status: None,
             client: Client::new(),
         }
     }
 }
 
-// Add this helper function
 #[cfg(target_arch = "wasm32")]
 fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
     wasm_bindgen_futures::spawn_local(future);
@@ -63,6 +65,21 @@ impl TemplateApp {
 
         Ok(response.status().is_success())
     }
+
+    async fn register_user(
+        username: String,
+        password: String,
+        client: Client,
+    ) -> Result<bool, reqwest::Error> {
+        let user = User { username, password };
+        let response = client
+            .post("http://localhost:8080/api/register")
+            .json(&user)
+            .send()
+            .await?;
+
+        Ok(response.status().is_success())
+    }
 }
 
 impl eframe::App for TemplateApp {
@@ -72,7 +89,7 @@ impl eframe::App for TemplateApp {
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Sign in page");
+            ui.heading("User Management");
 
             ui.horizontal(|ui| {
                 ui.label("Username: ");
@@ -82,35 +99,79 @@ impl eframe::App for TemplateApp {
                 ui.label("Password: ");
                 ui.text_edit_singleline(&mut self.password);
             });
-            if ui.button("Sign in").clicked() {
-                let username = self.username.clone();
-                let password = self.password.clone();
-                let client = self.client.clone();
-                let ctx = ctx.clone();
 
-                spawn_task(async move {
-                    match Self::verify_user(username, password, client).await {
-                        Ok(is_valid) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("login_status".into(), is_valid)
-                            });
+            ui.horizontal(|ui| {
+                if ui.button("Sign in").clicked() {
+                    let username = self.username.clone();
+                    let password = self.password.clone();
+                    let client = self.client.clone();
+                    let ctx = ctx.clone();
+
+                    spawn_task(async move {
+                        match Self::verify_user(username, password, client).await {
+                            Ok(is_valid) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("login_status".into(), is_valid)
+                                });
+                            }
+                            Err(_) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("login_status".into(), false)
+                                });
+                            }
                         }
-                        Err(_) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("login_status".into(), false)
-                            });
-                        }
-                    }
-                });
-            }
-            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
-                if status {
-                    ui.label("Login successful!");
-                } else {
-                    ui.label("Login failed!");
+                    });
                 }
+
+                if ui.button("Register").clicked() {
+                    let username = self.username.clone();
+                    let password = self.password.clone();
+                    let client = self.client.clone();
+                    let ctx = ctx.clone();
+
+                    spawn_task(async move {
+                        match Self::register_user(username, password, client).await {
+                            Ok(is_registered) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data
+                                        .insert_temp("registration_status".into(), is_registered)
+                                });
+                            }
+                            Err(_) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("registration_status".into(), false)
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
+                ui.colored_label(
+                    if status { Color32::GREEN } else { Color32::RED },
+                    if status {
+                        "Login successful!"
+                    } else {
+                        "Login failed!"
+                    },
+                );
+            }
+
+            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("registration_status".into()))
+            {
+                ui.colored_label(
+                    if status { Color32::GREEN } else { Color32::RED },
+                    if status {
+                        "Registration successful!"
+                    } else {
+                        "Registration failed!"
+                    },
+                );
             }
         });
     }
