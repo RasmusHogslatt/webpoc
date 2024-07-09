@@ -68,9 +68,9 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "backend/target/release/"
+        source: "backend/target/release/*" # Error here
         target: "/var/www/your_app/backend/"
-        strip_components: 0
+        strip_components: 2
         debug: true
 
     - name: Check Server Directory Structure
