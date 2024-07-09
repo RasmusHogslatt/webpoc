@@ -7,6 +7,13 @@ pwd
 echo "Contents of current directory:"
 ls -la
 
+echo "Building shared.."
+cd shared || exit
+echo "Contents of shared directory:"
+ls -la
+cargo build --release
+cd ..
+
 echo "Building frontend..."
 cd frontend || exit
 echo "Contents of frontend directory:"
@@ -27,7 +34,9 @@ cat backend/Cargo.toml
 mkdir -p backend/target/release
 
 # Run cargo build from the root of the workspace
+cd backend || exit
 cargo build --release
+cd ..
 
 echo "Contents of backend/target directory after build:"
 ls -la backend/target
