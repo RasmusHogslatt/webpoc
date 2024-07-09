@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.0"
+actix-cors = "0.7"
 rusqlite = { version = "0.31.0", features = ["bundled-sqlcipher"] }
 shared = { path = "../shared" }
 dotenv = "0.15"

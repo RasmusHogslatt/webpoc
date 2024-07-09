@@ -140,10 +140,13 @@ impl eframe::App for TemplateApp {
                                         .insert_temp("registration_status".into(), is_registered)
                                 });
                             }
-                            Err(_) => {
+                            Err(e) => {
+                                let error_message = format!("Registration failed: {:?}", e);
+                                println!("{}", error_message); // This will print to the browser console
                                 ctx.request_repaint();
                                 ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("registration_status".into(), false)
+                                    mem.data.insert_temp("registration_status".into(), false);
+                                    mem.data.insert_temp("error_message".into(), error_message);
                                 });
                             }
                         }
@@ -174,5 +177,22 @@ impl eframe::App for TemplateApp {
                 );
             }
         });
+    }
+}
+
+impl TemplateApp {
+    async fn register_user(
+        username: String,
+        password: String,
+        client: Client,
+    ) -> Result<bool, reqwest::Error> {
+        let user = User { username, password };
+        let response = client
+            .post("http://:8080/api/register")
+            .json(&user)
+            .send()
+            .await?;
+
+        Ok(response.status().is_success())
     }
 }

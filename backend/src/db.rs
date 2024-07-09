@@ -3,8 +3,9 @@ use rusqlite::{Connection, Result};
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref DB_CONNECTION: Mutex<Connection> =
-        Mutex::new(Connection::open("users.db").expect("Failed to open database"));
+    static ref DB_CONNECTION: Mutex<Connection> = Mutex::new(
+        Connection::open("/var/www/your_app/backend/users.db").expect("Failed to open database")
+    );
 }
 
 pub fn init_db() -> Result<()> {
