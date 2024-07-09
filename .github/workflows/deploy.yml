@@ -68,8 +68,8 @@ jobs:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "$(find backend/target/release -maxdepth 1 -type f -executable)"
-        target: "/var/www/your_app/backend/backend_binary"
+        source: "backend/target/release/"
+        target: "/var/www/your_app/backend/"
         strip_components: 0
         debug: true
 
