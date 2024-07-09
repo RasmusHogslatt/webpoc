@@ -27,7 +27,13 @@ ls -la src
 echo "Contents of backend Cargo.toml:"
 cat Cargo.toml
 cargo build --release
+echo "Contents of backend/target directory:"
+ls -la target
+echo "Contents of backend/target/release directory:"
+ls -la target/release
+echo "Size of backend binary:"
+du -h target/release/backend
 cd ..
 
-echo "Build complete. Contents of frontend/dist directory:"
-ls -la frontend/dist
+echo "Final directory structure:"
+find . -type d
