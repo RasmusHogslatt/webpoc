@@ -31,7 +31,10 @@ fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
+fn spawn_task<F>(future: F)
+where
+    F: Future<Output = ()> + Send + 'static,
+{
     std::thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(future);
@@ -46,24 +49,10 @@ impl TemplateApp {
         Default::default()
     }
 
-    // async fn verify_user(&self) -> Result<bool, reqwest::Error> {
-    //     let user = User {
-    //         username: self.username.clone(),
-    //         password: self.password.clone(),
-    //     };
-    //     let response = self
-    //         .client
-    //         .post("http://localhost:8080/api/login")
-    //         .json(&user)
-    //         .send()
-    //         .await?;
-
-    //     Ok(response.status().is_success())
-    // }
     async fn verify_user(
         username: String,
         password: String,
-        client: &Client,
+        client: Client,
     ) -> Result<bool, reqwest::Error> {
         let user = User { username, password };
         let response = client
@@ -98,8 +87,9 @@ impl eframe::App for TemplateApp {
                 let password = self.password.clone();
                 let client = self.client.clone();
                 let ctx = ctx.clone();
+
                 spawn_task(async move {
-                    match Self::verify_user(username, password, &client).await {
+                    match Self::verify_user(username, password, client).await {
                         Ok(is_valid) => {
                             ctx.request_repaint();
                             ctx.memory_mut(|mem| {
