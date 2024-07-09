@@ -12,9 +12,6 @@ cd frontend || exit
 echo "Contents of frontend directory:"
 ls -la
 
-echo "Renaming cargo.toml to Cargo.toml if necessary"
-[ -f cargo.toml ] && mv cargo.toml Cargo.toml
-
 echo "Contents of frontend directory after renaming:"
 ls -la
 
@@ -32,5 +29,5 @@ cat Cargo.toml
 cargo build --release
 cd ..
 
-echo "Build complete. Contents of dist directory:"
-ls -la dist
+echo "Build complete. Contents of frontend/dist directory:"
+ls -la frontend/dist
