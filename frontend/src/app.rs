@@ -67,9 +67,12 @@ impl TemplateApp {
 
         if response.status().is_success() {
             let json: serde_json::Value = response.json().await?;
-            let user_data: UserData =
-                serde_json::from_str(json["user_data"].as_str().ok_or("Invalid JSON")?)?;
-            Ok(Some(user_data))
+            if json["status"] == "success" {
+                let user_data: UserData = serde_json::from_value(json["user_data"].clone())?;
+                Ok(Some(user_data))
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(None)
         }
@@ -166,7 +169,7 @@ impl eframe::App for TemplateApp {
                                 ctx.request_repaint();
                                 ctx.memory_mut(|mem| {
                                     mem.data
-                                        .insert_temp("registration_status".into(), is_registered)
+                                        .insert_temp("registration_status".into(), is_registered);
                                 });
                             }
                             Err(e) => {
