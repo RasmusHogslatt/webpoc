@@ -95,7 +95,7 @@ impl TemplateApp {
     ) -> Result<bool, reqwest::Error> {
         let user = User { username, password };
         let response = client
-            .post("http://138.68.94.119/api/register")
+            .post("http://138.68.94.119/api/register_user")
             .json(&user)
             .send()
             .await?;
