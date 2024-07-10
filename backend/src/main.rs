@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
             .service(auth::register_user)
             .service(auth::update_user_data)
     })
-    .bind("127.0.0.1:8080")?
+    .bind("[::]:8080")?
     .run()
     .await
 }
