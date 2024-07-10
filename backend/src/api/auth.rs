@@ -21,6 +21,20 @@ pub async fn login(user: web::Json<User>) -> impl Responder {
     }
 }
 
+#[post("/api/register")]
+pub async fn register_user(user: web::Json<User>) -> impl Responder {
+    match db::add_user(&user.username, &user.password) {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+            "status": "success",
+            "message": "User registered successfully"
+        })),
+        Err(_) => HttpResponse::InternalServerError().json(serde_json::json!({
+            "status": "error",
+            "message": "Failed to register user"
+        })),
+    }
+}
+
 #[post("/api/update_user_data")]
 pub async fn update_user_data(user_data: web::Json<UserData>) -> impl Responder {
     match db::update_user_data(&user_data.username, &user_data) {
