@@ -21,7 +21,7 @@ pub async fn login(user: web::Json<User>) -> impl Responder {
     }
 }
 
-#[post("/api/register")]
+#[post("/api/register_user")]
 pub async fn register_user(user: web::Json<User>) -> impl Responder {
     match db::add_user(&user.username, &user.password) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({
