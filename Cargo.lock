@@ -1484,6 +1484,7 @@ dependencies = [
  "log",
  "reqwest",
  "serde",
+ "serde_json",
  "shared",
  "tokio",
  "wasm-bindgen-futures",

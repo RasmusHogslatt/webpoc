@@ -7,8 +7,6 @@ use db::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize the database
-
     init_db().expect("Failed to initialize database");
 
     HttpServer::new(|| {
@@ -21,6 +19,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(api::auth::login)
             .service(api::auth::register)
+            .service(api::auth::update_user_data)
     })
     .bind("127.0.0.1:8080")?
     .run()

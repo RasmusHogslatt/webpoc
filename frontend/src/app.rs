@@ -1,7 +1,7 @@
 use egui::Color32;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use shared::User;
+use shared::*;
 use std::future::Future;
 
 #[derive(Deserialize, Serialize)]
@@ -11,6 +11,7 @@ pub struct TemplateApp {
     password: String,
     login_status: Option<bool>,
     registration_status: Option<bool>,
+    user_data: Option<UserData>,
     #[serde(skip)]
     client: Client,
 }
@@ -22,6 +23,7 @@ impl Default for TemplateApp {
             password: String::new(),
             login_status: None,
             registration_status: None,
+            user_data: None,
             client: Client::new(),
         }
     }
@@ -55,11 +57,31 @@ impl TemplateApp {
         username: String,
         password: String,
         client: Client,
-    ) -> Result<bool, reqwest::Error> {
+    ) -> Result<Option<UserData>, Box<dyn std::error::Error>> {
         let user = User { username, password };
         let response = client
             .post("http://138.68.94.119/api/login")
             .json(&user)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            let json: serde_json::Value = response.json().await?;
+            let user_data: UserData =
+                serde_json::from_str(json["user_data"].as_str().ok_or("Invalid JSON")?)?;
+            Ok(Some(user_data))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn update_user_data(
+        user_data: UserData,
+        client: Client,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
+        let response = client
+            .post("http://138.68.94.119/api/update_user_data")
+            .json(&user_data)
             .send()
             .await?;
 
@@ -109,16 +131,23 @@ impl eframe::App for TemplateApp {
 
                     spawn_task(async move {
                         match Self::verify_user(username, password, client).await {
-                            Ok(is_valid) => {
+                            Ok(Some(user_data)) => {
                                 ctx.request_repaint();
                                 ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("login_status".into(), is_valid)
+                                    mem.data.insert_temp("login_status".into(), true);
+                                    mem.data.insert_temp("user_data".into(), user_data);
+                                });
+                            }
+                            Ok(None) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("login_status".into(), false);
                                 });
                             }
                             Err(_) => {
                                 ctx.request_repaint();
                                 ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("login_status".into(), false)
+                                    mem.data.insert_temp("login_status".into(), false);
                                 });
                             }
                         }
@@ -154,6 +183,38 @@ impl eframe::App for TemplateApp {
                 }
             });
 
+            if let Some(user_data) = &mut self.user_data {
+                ui.heading("User Data");
+                ui.label(format!("Favorite Color: {}", user_data.favorite_color));
+                ui.label(format!("Age: {}", user_data.age));
+
+                if ui.button("Update User Data").clicked() {
+                    user_data.favorite_color = "Blue".to_string(); // Example update
+                    user_data.age += 1;
+
+                    let updated_user_data = user_data.clone();
+                    let client = self.client.clone();
+                    let ctx = ctx.clone();
+
+                    spawn_task(async move {
+                        match Self::update_user_data(updated_user_data, client).await {
+                            Ok(true) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("update_status".into(), true);
+                                });
+                            }
+                            _ => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("update_status".into(), false);
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
             if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
                 ui.colored_label(
                     if status { Color32::GREEN } else { Color32::RED },
@@ -173,6 +234,17 @@ impl eframe::App for TemplateApp {
                         "Registration successful!"
                     } else {
                         "Registration failed!"
+                    },
+                );
+            }
+
+            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("update_status".into())) {
+                ui.colored_label(
+                    if status { Color32::GREEN } else { Color32::RED },
+                    if status {
+                        "User data updated successfully!"
+                    } else {
+                        "Failed to update user data!"
                     },
                 );
             }
