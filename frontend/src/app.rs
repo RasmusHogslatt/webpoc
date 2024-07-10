@@ -67,17 +67,21 @@ impl TemplateApp {
 
         if response.status().is_success() {
             let json: serde_json::Value = response.json().await?;
+            println!("Login response JSON: {:?}", json); // Debug log
+
             if json["status"] == "success" {
                 let user_data: UserData = serde_json::from_value(json["user_data"].clone())?;
+                println!("Parsed user data: {:?}", user_data); // Debug log
                 Ok(Some(user_data))
             } else {
+                println!("Login failed with status: {:?}", json["status"]); // Debug log
                 Ok(None)
             }
         } else {
+            println!("Login failed with status code: {:?}", response.status()); // Debug log
             Ok(None)
         }
     }
-
     async fn update_user_data(
         user_data: UserData,
         client: Client,
