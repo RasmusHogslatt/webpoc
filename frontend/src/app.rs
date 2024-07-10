@@ -58,7 +58,7 @@ impl TemplateApp {
     ) -> Result<bool, reqwest::Error> {
         let user = User { username, password };
         let response = client
-            .post("http://localhost:8080/api/login")
+            .post("http://138.68.94.119:8080/api/login")
             .json(&user)
             .send()
             .await?;
@@ -73,7 +73,7 @@ impl TemplateApp {
     ) -> Result<bool, reqwest::Error> {
         let user = User { username, password };
         let response = client
-            .post("http://localhost:8080/api/register")
+            .post("http://138.68.94.119:8080/api/register")
             .json(&user)
             .send()
             .await?;
