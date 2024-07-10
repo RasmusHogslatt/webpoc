@@ -24,7 +24,7 @@ pub fn init_db() -> Result<()> {
     Ok(())
 }
 
-pub fn add_user(username: &str, password: &str) -> Result<()> {
+pub fn add_user(username: &str, password: &str) -> Result<(), rusqlite::Error> {
     let conn = DB_CONNECTION.lock().unwrap();
     conn.execute(
         "INSERT INTO users (username, password, user_data) VALUES (?1, ?2, ?3)",

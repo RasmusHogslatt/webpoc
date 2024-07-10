@@ -28,9 +28,9 @@ pub async fn register_user(user: web::Json<User>) -> impl Responder {
             "status": "success",
             "message": "User registered successfully"
         })),
-        Err(_) => HttpResponse::InternalServerError().json(serde_json::json!({
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
             "status": "error",
-            "message": "Failed to register user"
+            "message": format!("Failed to register user: {:?}", e)
         })),
     }
 }
