@@ -1,6 +1,7 @@
 mod api;
 mod db;
 
+use crate::api::auth;
 use actix_cors::Cors;
 use actix_web::{App, HttpServer};
 use db::*;
@@ -18,7 +19,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .service(auth::login)
-            .service(auth::register)
+            .service(auth::register_user)
             .service(auth::update_user_data)
     })
     .bind("127.0.0.1:8080")?

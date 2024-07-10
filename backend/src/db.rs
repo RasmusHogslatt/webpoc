@@ -48,7 +48,8 @@ pub fn verify_user(username: &str, password: &str) -> Result<Option<String>> {
 
 pub fn update_user_data(username: &str, user_data: &UserData) -> Result<()> {
     let conn = DB_CONNECTION.lock().unwrap();
-    let serialized_data = serde_json::to_string(user_data)?;
+    let serialized_data = serde_json::to_string(user_data)
+        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
     conn.execute(
         "UPDATE users SET user_data = ?1 WHERE username = ?2",
         [&serialized_data, username],
