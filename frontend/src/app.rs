@@ -1,3 +1,5 @@
+use crate::widgets::sign_in::SignInWidget;
+use crate::widgets::sign_up::{show_status, SignUpWidget};
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -26,12 +28,12 @@ impl Default for TemplateApp {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
+pub fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
     wasm_bindgen_futures::spawn_local(future);
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn spawn_task<F>(future: F)
+pub fn spawn_task<F>(future: F)
 where
     F: Future<Output = ()> + Send + 'static,
 {
@@ -49,7 +51,7 @@ impl TemplateApp {
         Default::default()
     }
 
-    async fn verify_user(
+    pub async fn verify_user(
         username: String,
         password: String,
         client: Client,
@@ -57,7 +59,7 @@ impl TemplateApp {
         let user = User {
             username,
             password,
-            email: None,
+            email: "".to_string(),
             created_at: None,
             last_login: None,
             user_data: UserData::default(),
@@ -85,7 +87,7 @@ impl TemplateApp {
             Ok(None)
         }
     }
-    async fn update_user_data(
+    pub async fn update_user_data(
         user: User,
         client: Client,
     ) -> Result<bool, Box<dyn std::error::Error>> {
@@ -104,15 +106,16 @@ impl TemplateApp {
         }
     }
 
-    async fn register_user(
+    pub async fn register_user(
         username: String,
         password: String,
+        email: String,
         client: Client,
     ) -> Result<bool, reqwest::Error> {
         let user = User {
             username,
             password,
-            email: None,
+            email,
             created_at: None,
             last_login: None,
             user_data: UserData::default(),
@@ -136,75 +139,71 @@ impl eframe::App for TemplateApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("User Management");
 
-            ui.horizontal(|ui| {
-                ui.label("Username: ");
-                ui.text_edit_singleline(&mut self.user.username);
-            });
-            ui.horizontal(|ui| {
-                ui.label("Password: ");
-                ui.text_edit_singleline(&mut self.user.password);
-            });
+            SignInWidget::new(&mut self.user, &|user| {
+                let username = user.username.clone();
+                let password = user.password.clone();
+                let client = self.client.clone();
+                let ctx = ctx.clone();
 
-            ui.horizontal(|ui| {
-                if ui.button("Sign in").clicked() {
-                    let username = self.user.username.clone();
-                    let password = self.user.password.clone();
-                    let client = self.client.clone();
-                    let ctx = ctx.clone();
-
-                    spawn_task(async move {
-                        match Self::verify_user(username, password, client).await {
-                            Ok(Some(user_data)) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("login_status".into(), true);
-                                    mem.data.insert_temp("user_data".into(), user_data);
-                                });
-                            }
-                            Ok(None) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("login_status".into(), false);
-                                });
-                            }
-                            Err(_) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("login_status".into(), false);
-                                });
-                            }
+                spawn_task(async move {
+                    match Self::verify_user(username, password, client).await {
+                        Ok(Some(user_data)) => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("login_status".into(), true);
+                                mem.data.insert_temp("user_data".into(), user_data);
+                            });
                         }
-                    });
-                }
-
-                if ui.button("Register").clicked() {
-                    let username = self.user.username.clone();
-                    let password = self.user.password.clone();
-                    let client = self.client.clone();
-                    let ctx = ctx.clone();
-
-                    spawn_task(async move {
-                        match Self::register_user(username, password, client).await {
-                            Ok(is_registered) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data
-                                        .insert_temp("registration_status".into(), is_registered);
-                                });
-                            }
-                            Err(e) => {
-                                let error_message = format!("Registration failed: {:?}", e);
-                                println!("{}", error_message); // This will print to the browser console
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("registration_status".into(), false);
-                                    mem.data.insert_temp("error_message".into(), error_message);
-                                });
-                            }
+                        Ok(None) => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("login_status".into(), false);
+                            });
                         }
-                    });
-                }
-            });
+                        Err(_) => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("login_status".into(), false);
+                            });
+                        }
+                    }
+                });
+            })
+            .ui(ui);
+
+            ui.add_space(20.0);
+
+            SignUpWidget::new(&mut self.user, &|user| {
+                let username = user.username.clone();
+                let password = user.password.clone();
+                let email = user.email.clone();
+                let client = self.client.clone();
+                let ctx = ctx.clone();
+
+                spawn_task(async move {
+                    match Self::register_user(username, password, email, client).await {
+                        Ok(is_registered) => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data
+                                    .insert_temp("registration_status".into(), is_registered);
+                            });
+                        }
+                        Err(e) => {
+                            let error_message = format!("Registration failed: {:?}", e);
+                            println!("{}", error_message);
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("registration_status".into(), false);
+                                mem.data.insert_temp("error_message".into(), error_message);
+                            });
+                        }
+                    }
+                });
+            })
+            .ui(ui);
+
+            ui.add_space(20.0);
 
             ui.heading("User Data");
             let changed = ui
@@ -233,39 +232,27 @@ impl eframe::App for TemplateApp {
                 });
             }
 
-            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
-                ui.colored_label(
-                    if status { Color32::GREEN } else { Color32::RED },
-                    if status {
-                        "Login successful!"
-                    } else {
-                        "Login failed!"
-                    },
-                );
-            }
+            ui.add_space(20.0);
 
-            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("registration_status".into()))
-            {
-                ui.colored_label(
-                    if status { Color32::GREEN } else { Color32::RED },
-                    if status {
-                        "Registration successful!"
-                    } else {
-                        "Registration failed!"
-                    },
-                );
-            }
+            let login_status = ctx.memory(|mem| mem.data.get_temp("login_status".into()));
+            show_status(ui, login_status, "Login successful!", "Login failed!");
 
-            if let Some(status) = ctx.memory(|mem| mem.data.get_temp("update_status".into())) {
-                ui.colored_label(
-                    if status { Color32::GREEN } else { Color32::RED },
-                    if status {
-                        "User data updated successfully!"
-                    } else {
-                        "Failed to update user data!"
-                    },
-                );
-            }
+            let registration_status =
+                ctx.memory(|mem| mem.data.get_temp("registration_status".into()));
+            show_status(
+                ui,
+                registration_status,
+                "Registration successful!",
+                "Registration failed!",
+            );
+
+            let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
+            show_status(
+                ui,
+                update_status,
+                "User data updated successfully!",
+                "Failed to update user data!",
+            );
         });
     }
 }

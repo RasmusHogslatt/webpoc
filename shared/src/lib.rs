@@ -10,7 +10,7 @@ pub struct UserData {
 pub struct User {
     pub username: String,
     pub password: String,
-    pub email: Option<String>,
+    pub email: String,
     pub created_at: Option<String>,
     pub last_login: Option<String>,
     pub user_data: UserData, // serialized as JSON

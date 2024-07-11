@@ -2,3 +2,4 @@
 
 pub mod app;
 pub use app::TemplateApp;
+pub mod widgets;
