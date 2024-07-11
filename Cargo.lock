@@ -666,9 +666,11 @@ dependencies = [
  "argon2",
  "chrono",
  "dotenv",
+ "eframe",
  "egui",
  "env_logger",
  "lazy_static",
+ "log",
  "rusqlite",
  "serde",
  "serde_json",
@@ -3153,8 +3155,11 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "eframe",
  "egui",
+ "log",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
