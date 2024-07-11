@@ -91,7 +91,7 @@ impl TemplateApp {
     ) -> Result<bool, Box<dyn std::error::Error>> {
         let response = client
             .post("http://138.68.94.119/api/update_user_data")
-            .json(&user.user_data)
+            .json(&user) // send the entire User object
             .send()
             .await?;
 
@@ -99,7 +99,7 @@ impl TemplateApp {
             Ok(true)
         } else {
             let error_message = response.text().await?;
-            print!("Failed to update user data: {:?}", error_message);
+            println!("Failed to update user data: {:?}", error_message);
             Ok(false)
         }
     }
