@@ -1,5 +1,6 @@
 use argon2::{self, Config};
 use chrono::Utc;
+use egui::Color32;
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result};
 use serde_json;
@@ -41,26 +42,21 @@ pub fn add_user(
     let now = Utc::now().to_rfc3339();
 
     let initial_user_data = UserData {
-        username: username.to_string(),
-        favorite_color: String::new(),
-        age: 0,
-        email: email.map(|e| e.to_string()),
-        created_at: Some(now.clone()),
-        last_login: Some(now),
+        favorite_color: egui::Color32::BLUE,
     };
 
     let user_data_json = serde_json::to_string(&initial_user_data).unwrap();
 
     conn.execute(
-        "INSERT INTO users (username, password, user_data, email, created_at, last_login) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![username, &hash, &user_data_json, email, &now, &now],
+        "INSERT INTO users (username, password, email, created_at, last_login, user_data) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![username, &hash, email, &now, &now, &user_data_json],
     )?;
     Ok(())
 }
 
 pub fn verify_user(username: &str, password: &str) -> Result<Option<UserData>> {
     let conn = DB_CONNECTION.lock().unwrap();
-    let mut stmt = conn.prepare("SELECT password, user_data FROM users WHERE username = ?1")?;
+    let mut stmt = conn.prepare("SELECT password FROM users WHERE username = ?1")?;
     let mut rows = stmt.query([username])?;
 
     if let Some(row) = rows.next()? {
@@ -83,18 +79,18 @@ pub fn verify_user(username: &str, password: &str) -> Result<Option<UserData>> {
 }
 
 pub fn update_user_data(username: &str, user_data: &UserData) -> Result<()> {
-    let conn = DB_CONNECTION.lock().unwrap();
-    let now = Utc::now().to_rfc3339();
+    // let conn = DB_CONNECTION.lock().unwrap();
+    // let now = Utc::now().to_rfc3339();
 
-    let mut updated_user_data = user_data.clone();
-    updated_user_data.last_login = Some(now.clone());
+    // let mut updated_user_data = user_data.clone();
+    // updated_user_data.last_login = Some(now.clone());
 
-    let serialized_data = serde_json::to_string(&updated_user_data)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+    // let serialized_data = serde_json::to_string(&updated_user_data)
+    //     .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
 
-    conn.execute(
-        "UPDATE users SET user_data = ?1, email = ?2, last_login = ?3 WHERE username = ?4",
-        params![&serialized_data, &updated_user_data.email, &now, username],
-    )?;
+    // conn.execute(
+    //     "UPDATE users SET user_data = ?1, email = ?2, last_login = ?3 WHERE username = ?4",
+    //     params![&serialized_data, &updated_user_data.email, &now, username],
+    // )?;
     Ok(())
 }

@@ -666,6 +666,7 @@ dependencies = [
  "argon2",
  "chrono",
  "dotenv",
+ "egui",
  "env_logger",
  "lazy_static",
  "rusqlite",
@@ -3152,6 +3153,7 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "egui",
  "serde",
 ]
 

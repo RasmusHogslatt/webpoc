@@ -1,4 +1,4 @@
-use egui::Color32;
+use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shared::*;
@@ -58,7 +58,14 @@ impl TemplateApp {
         password: String,
         client: Client,
     ) -> Result<Option<UserData>, Box<dyn std::error::Error>> {
-        let user = User { username, password };
+        let user = User {
+            username,
+            password,
+            email: None,
+            created_at: None,
+            last_login: None,
+            user_data: UserData::default(),
+        };
         let response = client
             .post("http://138.68.94.119/api/login")
             .json(&user)
@@ -100,7 +107,14 @@ impl TemplateApp {
         password: String,
         client: Client,
     ) -> Result<bool, reqwest::Error> {
-        let user = User { username, password };
+        let user = User {
+            username,
+            password,
+            email: None,
+            created_at: None,
+            last_login: None,
+            user_data: UserData::default(),
+        };
         let response = client
             .post("http://138.68.94.119/api/register")
             .json(&user)
@@ -192,13 +206,10 @@ impl eframe::App for TemplateApp {
 
             if let Some(user_data) = &mut self.user_data {
                 ui.heading("User Data");
-                ui.label(format!("Favorite Color: {}", user_data.favorite_color));
-                ui.label(format!("Age: {}", user_data.age));
-
-                if ui.button("Update User Data").clicked() {
-                    user_data.favorite_color = "Blue".to_string(); // Example update
-                    user_data.age += 1;
-
+                if ui
+                    .color_edit_button_srgba(&mut user_data.favorite_color)
+                    .changed()
+                {
                     let updated_user_data = user_data.clone();
                     let client = self.client.clone();
                     let ctx = ctx.clone();
