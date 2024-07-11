@@ -36,8 +36,8 @@ pub async fn register_user(user: web::Json<User>) -> impl Responder {
 }
 
 #[post("/api/update_user_data")]
-pub async fn update_user_data(user_data: web::Json<UserData>) -> impl Responder {
-    match db::update_user_data(&user_data.username, &user_data) {
+pub async fn update_user_data(user: web::Json<User>) -> impl Responder {
+    match db::update_user_data(&user.username, &user.user_data) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({
             "status": "success",
             "message": "User data updated successfully"
