@@ -7,11 +7,9 @@ use std::future::Future;
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct TemplateApp {
-    username: String,
-    password: String,
+    user: User,
     login_status: Option<bool>,
     registration_status: Option<bool>,
-    user_data: Option<UserData>,
     #[serde(skip)]
     client: Client,
 }
@@ -19,11 +17,9 @@ pub struct TemplateApp {
 impl Default for TemplateApp {
     fn default() -> Self {
         Self {
-            username: String::new(),
-            password: String::new(),
+            user: User::default(),
             login_status: None,
             registration_status: None,
-            user_data: None,
             client: Client::new(),
         }
     }
@@ -136,17 +132,17 @@ impl eframe::App for TemplateApp {
 
             ui.horizontal(|ui| {
                 ui.label("Username: ");
-                ui.text_edit_singleline(&mut self.username);
+                ui.text_edit_singleline(&mut self.user.username);
             });
             ui.horizontal(|ui| {
                 ui.label("Password: ");
-                ui.text_edit_singleline(&mut self.password);
+                ui.text_edit_singleline(&mut self.user.password);
             });
 
             ui.horizontal(|ui| {
                 if ui.button("Sign in").clicked() {
-                    let username = self.username.clone();
-                    let password = self.password.clone();
+                    let username = self.user.username.clone();
+                    let password = self.user.password.clone();
                     let client = self.client.clone();
                     let ctx = ctx.clone();
 
@@ -176,8 +172,8 @@ impl eframe::App for TemplateApp {
                 }
 
                 if ui.button("Register").clicked() {
-                    let username = self.username.clone();
-                    let password = self.password.clone();
+                    let username = self.user.username.clone();
+                    let password = self.user.password.clone();
                     let client = self.client.clone();
                     let ctx = ctx.clone();
 
@@ -204,13 +200,13 @@ impl eframe::App for TemplateApp {
                 }
             });
 
-            if let Some(user_data) = &mut self.user_data {
+            if self.login_status.is_some() && self.login_status.unwrap() {
                 ui.heading("User Data");
                 if ui
-                    .color_edit_button_srgba(&mut user_data.favorite_color)
+                    .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
                     .changed()
                 {
-                    let updated_user_data = user_data.clone();
+                    let updated_user_data = self.user.user_data.clone();
                     let client = self.client.clone();
                     let ctx = ctx.clone();
 
