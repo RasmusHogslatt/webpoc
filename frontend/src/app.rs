@@ -8,10 +8,10 @@ use std::future::Future;
 #[serde(default)]
 pub struct TemplateApp {
     user: User,
-    login_status: Option<bool>,
-    registration_status: Option<bool>,
     #[serde(skip)]
     client: Client,
+    login_status: Option<bool>,
+    registration_status: Option<bool>,
 }
 
 impl Default for TemplateApp {
@@ -200,33 +200,31 @@ impl eframe::App for TemplateApp {
                 }
             });
 
-            if self.login_status.is_some() && self.login_status.unwrap() {
-                ui.heading("User Data");
-                if ui
-                    .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
-                    .changed()
-                {
-                    let updated_user_data = self.user.user_data.clone();
-                    let client = self.client.clone();
-                    let ctx = ctx.clone();
+            ui.heading("User Data");
+            let changed = ui
+                .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
+                .changed();
+            if changed {
+                let updated_user_data = self.user.user_data.clone();
+                let client = self.client.clone();
+                let ctx = ctx.clone();
 
-                    spawn_task(async move {
-                        match Self::update_user_data(updated_user_data, client).await {
-                            Ok(true) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("update_status".into(), true);
-                                });
-                            }
-                            _ => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("update_status".into(), false);
-                                });
-                            }
+                spawn_task(async move {
+                    match Self::update_user_data(updated_user_data, client).await {
+                        Ok(true) => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("update_status".into(), true);
+                            });
                         }
-                    });
-                }
+                        _ => {
+                            ctx.request_repaint();
+                            ctx.memory_mut(|mem| {
+                                mem.data.insert_temp("update_status".into(), false);
+                            });
+                        }
+                    }
+                });
             }
 
             if let Some(status) = ctx.memory(|mem| mem.data.get_temp("login_status".into())) {
