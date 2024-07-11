@@ -86,16 +86,22 @@ impl TemplateApp {
         }
     }
     async fn update_user_data(
-        user_data: UserData,
+        user: User,
         client: Client,
     ) -> Result<bool, Box<dyn std::error::Error>> {
         let response = client
             .post("http://138.68.94.119/api/update_user_data")
-            .json(&user_data)
+            .json(&user.user_data)
             .send()
             .await?;
 
-        Ok(response.status().is_success())
+        if response.status().is_success() {
+            Ok(true)
+        } else {
+            let error_message = response.text().await?;
+            print!("Failed to update user data: {:?}", error_message);
+            Ok(false)
+        }
     }
 
     async fn register_user(
@@ -205,12 +211,12 @@ impl eframe::App for TemplateApp {
                 .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
                 .changed();
             if changed {
-                let updated_user_data = self.user.user_data.clone();
+                let updated_user = self.user.clone();
                 let client = self.client.clone();
                 let ctx = ctx.clone();
 
                 spawn_task(async move {
-                    match Self::update_user_data(updated_user_data, client).await {
+                    match Self::update_user_data(updated_user, client).await {
                         Ok(true) => {
                             ctx.request_repaint();
                             ctx.memory_mut(|mem| {

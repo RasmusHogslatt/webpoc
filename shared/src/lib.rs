@@ -6,7 +6,7 @@ pub struct UserData {
     pub favorite_color: Color32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct User {
     pub username: String,
     pub password: String,
