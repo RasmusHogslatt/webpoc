@@ -173,7 +173,8 @@ impl eframe::App for TemplateApp {
 
             ui.add_space(20.0);
 
-            SignUpWidget::new(&mut self.user, &|user| {
+            let mut show_password = false;
+            SignUpWidget::new(&mut self.user, &mut show_password, &|user| {
                 let username = user.username.clone();
                 let password = user.password.clone();
                 let email = user.email.clone();

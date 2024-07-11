@@ -3,22 +3,26 @@ use shared::User;
 
 pub struct SignUpWidget<'a> {
     user: &'a mut User,
+    show_password: &'a mut bool,
     on_submit: &'a dyn Fn(&User),
-    pub show_password: bool,
 }
 
 impl<'a> SignUpWidget<'a> {
-    pub fn new(user: &'a mut User, on_submit: &'a dyn Fn(&User)) -> Self {
+    pub fn new(
+        user: &'a mut User,
+        show_password: &'a mut bool,
+        on_submit: &'a dyn Fn(&User),
+    ) -> Self {
         Self {
             user,
+            show_password,
             on_submit,
-            show_password: false,
         }
     }
 }
 
 impl<'a> Widget for SignUpWidget<'a> {
-    fn ui(mut self, ui: &mut Ui) -> Response {
+    fn ui(self, ui: &mut Ui) -> Response {
         ui.group(|ui| {
             ui.heading("Sign Up");
             ui.horizontal(|ui| {
@@ -27,13 +31,15 @@ impl<'a> Widget for SignUpWidget<'a> {
             });
             ui.horizontal(|ui| {
                 ui.label("Password: ");
-                ui.text_edit_singleline(&mut self.user.password);
+                ui.add(
+                    TextEdit::singleline(&mut self.user.password).password(!*self.show_password),
+                );
             });
             ui.horizontal(|ui| {
                 ui.label("Email: ");
-                ui.add(TextEdit::singleline(&mut self.user.email).password(self.show_password));
-                ui.checkbox(&mut self.show_password, "Show password");
+                ui.text_edit_singleline(&mut self.user.email);
             });
+            ui.checkbox(self.show_password, "Show password");
             if ui.button("Register").clicked() {
                 (self.on_submit)(self.user);
             }
@@ -42,6 +48,7 @@ impl<'a> Widget for SignUpWidget<'a> {
     }
 }
 
+// The show_status function remains unchanged
 pub fn show_status(
     ui: &mut Ui,
     status: Option<bool>,
