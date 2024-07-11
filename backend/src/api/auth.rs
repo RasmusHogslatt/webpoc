@@ -1,7 +1,7 @@
 use crate::db;
 use actix_web::{post, web, HttpResponse, Responder};
 use serde_json;
-use shared::{User, UserData};
+use shared::User;
 
 #[post("/api/login")]
 pub async fn login(user: web::Json<User>) -> impl Responder {

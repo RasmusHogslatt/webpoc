@@ -33,11 +33,7 @@ pub fn init_db() -> Result<()> {
     Ok(())
 }
 
-pub fn add_user(
-    username: &str,
-    password: &str,
-    email: Option<&str>,
-) -> Result<(), rusqlite::Error> {
+pub fn add_user(username: &str, password: &str, email: &str) -> Result<(), rusqlite::Error> {
     let conn = DB_CONNECTION.lock().unwrap();
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
