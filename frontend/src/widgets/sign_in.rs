@@ -1,4 +1,4 @@
-use egui::{Color32, Response, Ui, Widget};
+use egui::{Response, Ui, Widget};
 use shared::User;
 
 pub struct SignInWidget<'a> {
