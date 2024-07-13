@@ -268,7 +268,7 @@ impl eframe::App for Application {
                             }
                         });
                     }
-                    ui.label("Favorite color:");
+
                     ui.colored_label(
                         self.user.user_data.favorite_color,
                         format!("{:?}", self.user.user_data.favorite_color),
