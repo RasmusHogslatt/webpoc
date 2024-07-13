@@ -47,9 +47,6 @@ impl<'a> Widget for SignUpWidget<'a> {
             if ui.button("Register").clicked() {
                 (self.on_submit)(self.user);
             }
-            if ui.button("Back").clicked() {
-                *self.app_state = AppState::FirstUse;
-            }
         })
         .response
     }
