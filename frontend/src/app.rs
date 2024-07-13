@@ -1,3 +1,4 @@
+use crate::settings::settings_sing_up::*;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use egui::*;
@@ -14,6 +15,7 @@ pub struct TemplateApp {
     client: Client,
     login_status: Option<bool>,
     registration_status: Option<bool>,
+    settings_sign_up: SettingsSignUp,
 }
 
 impl Default for TemplateApp {
@@ -23,6 +25,7 @@ impl Default for TemplateApp {
             login_status: None,
             registration_status: None,
             client: Client::new(),
+            settings_sign_up: SettingsSignUp::default(),
         }
     }
 }
@@ -173,34 +176,38 @@ impl eframe::App for TemplateApp {
 
             ui.add_space(20.0);
 
-            SignUpWidget::new(&mut self.user, &|user| {
-                let username = user.username.clone();
-                let password = user.password.clone();
-                let email = user.email.clone();
-                let client = self.client.clone();
-                let ctx = ctx.clone();
+            SignUpWidget::new(
+                &mut self.user,
+                &mut self.settings_sign_up.show_password,
+                &|user| {
+                    let username = user.username.clone();
+                    let password = user.password.clone();
+                    let email = user.email.clone();
+                    let client = self.client.clone();
+                    let ctx = ctx.clone();
 
-                spawn_task(async move {
-                    match Self::register_user(username, password, email, client).await {
-                        Ok(is_registered) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data
-                                    .insert_temp("registration_status".into(), is_registered);
-                            });
+                    spawn_task(async move {
+                        match Self::register_user(username, password, email, client).await {
+                            Ok(is_registered) => {
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data
+                                        .insert_temp("registration_status".into(), is_registered);
+                                });
+                            }
+                            Err(e) => {
+                                let error_message = format!("Registration failed: {:?}", e);
+                                println!("{}", error_message);
+                                ctx.request_repaint();
+                                ctx.memory_mut(|mem| {
+                                    mem.data.insert_temp("registration_status".into(), false);
+                                    mem.data.insert_temp("error_message".into(), error_message);
+                                });
+                            }
                         }
-                        Err(e) => {
-                            let error_message = format!("Registration failed: {:?}", e);
-                            println!("{}", error_message);
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("registration_status".into(), false);
-                                mem.data.insert_temp("error_message".into(), error_message);
-                            });
-                        }
-                    }
-                });
-            })
+                    });
+                },
+            )
             .ui(ui);
 
             ui.add_space(20.0);
