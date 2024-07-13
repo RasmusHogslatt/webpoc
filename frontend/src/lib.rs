@@ -2,5 +2,6 @@
 
 pub mod app;
 pub use app::TemplateApp;
+pub mod app_states;
 pub mod settings;
 pub mod widgets;

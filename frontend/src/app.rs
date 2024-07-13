@@ -1,3 +1,4 @@
+use crate::app_states::AppState;
 use crate::settings::settings_sing_up::*;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
@@ -15,6 +16,7 @@ pub struct TemplateApp {
     client: Client,
     login_status: Option<bool>,
     registration_status: Option<bool>,
+    app_state: AppState,
     settings_sign_up: SettingsSignUp,
 }
 
@@ -25,6 +27,7 @@ impl Default for TemplateApp {
             login_status: None,
             registration_status: None,
             client: Client::new(),
+            app_state: AppState::FirstUse,
             settings_sign_up: SettingsSignUp::default(),
         }
     }
@@ -139,6 +142,17 @@ impl eframe::App for TemplateApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(format!("App State: {:?}", self.app_state));
+            });
+        });
+        match self.app_state {
+            AppState::FirstUse => {}
+            AppState::SignIn => {}
+            AppState::SignUp => {}
+            AppState::Application => {}
+        };
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("User Management");
 
