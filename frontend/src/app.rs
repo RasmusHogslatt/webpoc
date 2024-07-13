@@ -239,7 +239,7 @@ impl eframe::App for Application {
                         "Registration failed!",
                     );
                     if registration_status.is_some() && registration_status.unwrap() {
-                        self.app_state = AppState::Application;
+                        self.app_state = AppState::SignIn;
                     }
                 }
                 AppState::Application => {
@@ -268,6 +268,11 @@ impl eframe::App for Application {
                             }
                         });
                     }
+                    ui.label("Favorite color:");
+                    ui.colored_label(
+                        self.user.user_data.favorite_color,
+                        format!("{:?}", self.user.user_data.favorite_color),
+                    );
 
                     let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
                     show_status(
