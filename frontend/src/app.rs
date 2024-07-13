@@ -273,7 +273,9 @@ impl eframe::App for Application {
                         self.user.user_data.favorite_color,
                         format!("{:?}", self.user.user_data.favorite_color),
                     );
-
+                    if ui.button("Go home").clicked() {
+                        self.app_state = AppState::FirstUse;
+                    }
                     let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
                     show_status(
                         ui,
