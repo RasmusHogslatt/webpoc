@@ -1,5 +1,6 @@
 use crate::app_states::AppState;
 use crate::settings::settings_sing_up::*;
+use crate::widgets::first_use::FirstUseWidget;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use egui::*;
@@ -147,133 +148,129 @@ impl eframe::App for TemplateApp {
                 ui.label(format!("App State: {:?}", self.app_state));
             });
         });
-        match self.app_state {
-            AppState::FirstUse => {}
-            AppState::SignIn => {}
-            AppState::SignUp => {}
-            AppState::Application => {}
-        };
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("User Management");
+            match self.app_state {
+                AppState::FirstUse => {
+                    FirstUseWidget::new(&mut self.app_state).ui(ui);
+                }
+                AppState::SignIn => {
+                    SignInWidget::new(&mut self.user, &|user| {
+                        let username = user.username.clone();
+                        let password = user.password.clone();
+                        let client = self.client.clone();
+                        let ctx = ctx.clone();
 
-            SignInWidget::new(&mut self.user, &|user| {
-                let username = user.username.clone();
-                let password = user.password.clone();
-                let client = self.client.clone();
-                let ctx = ctx.clone();
-
-                spawn_task(async move {
-                    match Self::verify_user(username, password, client).await {
-                        Ok(Some(user_data)) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("login_status".into(), true);
-                                mem.data.insert_temp("user_data".into(), user_data);
-                            });
-                        }
-                        Ok(None) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("login_status".into(), false);
-                            });
-                        }
-                        Err(_) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("login_status".into(), false);
-                            });
-                        }
-                    }
-                });
-            })
-            .ui(ui);
-
-            ui.add_space(20.0);
-
-            SignUpWidget::new(
-                &mut self.user,
-                &mut self.settings_sign_up.show_password,
-                &|user| {
-                    let username = user.username.clone();
-                    let password = user.password.clone();
-                    let email = user.email.clone();
-                    let client = self.client.clone();
-                    let ctx = ctx.clone();
-
-                    spawn_task(async move {
-                        match Self::register_user(username, password, email, client).await {
-                            Ok(is_registered) => {
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data
-                                        .insert_temp("registration_status".into(), is_registered);
-                                });
+                        spawn_task(async move {
+                            match Self::verify_user(username, password, client).await {
+                                Ok(Some(user_data)) => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("login_status".into(), true);
+                                        mem.data.insert_temp("user_data".into(), user_data);
+                                    });
+                                }
+                                Ok(None) => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("login_status".into(), false);
+                                    });
+                                }
+                                Err(_) => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("login_status".into(), false);
+                                    });
+                                }
                             }
-                            Err(e) => {
-                                let error_message = format!("Registration failed: {:?}", e);
-                                println!("{}", error_message);
-                                ctx.request_repaint();
-                                ctx.memory_mut(|mem| {
-                                    mem.data.insert_temp("registration_status".into(), false);
-                                    mem.data.insert_temp("error_message".into(), error_message);
-                                });
+                        });
+                    })
+                    .ui(ui);
+                    let login_status = ctx.memory(|mem| mem.data.get_temp("login_status".into()));
+                    show_status(ui, login_status, "Login successful!", "Login failed!");
+                }
+                AppState::SignUp => {
+                    SignUpWidget::new(
+                        &mut self.user,
+                        &mut self.settings_sign_up.show_password,
+                        &|user| {
+                            let username = user.username.clone();
+                            let password = user.password.clone();
+                            let email = user.email.clone();
+                            let client = self.client.clone();
+                            let ctx = ctx.clone();
+
+                            spawn_task(async move {
+                                match Self::register_user(username, password, email, client).await {
+                                    Ok(is_registered) => {
+                                        ctx.request_repaint();
+                                        ctx.memory_mut(|mem| {
+                                            mem.data.insert_temp(
+                                                "registration_status".into(),
+                                                is_registered,
+                                            );
+                                        });
+                                    }
+                                    Err(e) => {
+                                        let error_message = format!("Registration failed: {:?}", e);
+                                        println!("{}", error_message);
+                                        ctx.request_repaint();
+                                        ctx.memory_mut(|mem| {
+                                            mem.data
+                                                .insert_temp("registration_status".into(), false);
+                                            mem.data
+                                                .insert_temp("error_message".into(), error_message);
+                                        });
+                                    }
+                                }
+                            });
+                        },
+                    )
+                    .ui(ui);
+                    let registration_status =
+                        ctx.memory(|mem| mem.data.get_temp("registration_status".into()));
+                    show_status(
+                        ui,
+                        registration_status,
+                        "Registration successful!",
+                        "Registration failed!",
+                    );
+                }
+                AppState::Application => {
+                    let changed = ui
+                        .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
+                        .changed();
+                    if changed {
+                        let updated_user = self.user.clone();
+                        let client = self.client.clone();
+                        let ctx = ctx.clone();
+
+                        spawn_task(async move {
+                            match Self::update_user_data(updated_user, client).await {
+                                Ok(true) => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("update_status".into(), true);
+                                    });
+                                }
+                                _ => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("update_status".into(), false);
+                                    });
+                                }
                             }
-                        }
-                    });
-                },
-            )
-            .ui(ui);
-
-            ui.add_space(20.0);
-
-            ui.heading("User Data");
-            let changed = ui
-                .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
-                .changed();
-            if changed {
-                let updated_user = self.user.clone();
-                let client = self.client.clone();
-                let ctx = ctx.clone();
-
-                spawn_task(async move {
-                    match Self::update_user_data(updated_user, client).await {
-                        Ok(true) => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("update_status".into(), true);
-                            });
-                        }
-                        _ => {
-                            ctx.request_repaint();
-                            ctx.memory_mut(|mem| {
-                                mem.data.insert_temp("update_status".into(), false);
-                            });
-                        }
+                        });
                     }
-                });
-            }
 
-            ui.add_space(20.0);
-
-            let login_status = ctx.memory(|mem| mem.data.get_temp("login_status".into()));
-            show_status(ui, login_status, "Login successful!", "Login failed!");
-
-            let registration_status =
-                ctx.memory(|mem| mem.data.get_temp("registration_status".into()));
-            show_status(
-                ui,
-                registration_status,
-                "Registration successful!",
-                "Registration failed!",
-            );
-
-            let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
-            show_status(
-                ui,
-                update_status,
-                "User data updated successfully!",
-                "Failed to update user data!",
-            );
+                    let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
+                    show_status(
+                        ui,
+                        update_status,
+                        "User data updated successfully!",
+                        "Failed to update user data!",
+                    );
+                }
+            };
         });
     }
 }
