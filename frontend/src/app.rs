@@ -15,8 +15,8 @@ pub struct Application {
     user: User,
     #[serde(skip)]
     client: Client,
-    login_status: Option<bool>,
-    registration_status: Option<bool>,
+    login_status: bool,
+    registration_status: bool,
     app_state: AppState,
     settings_sign_up: SettingsSignUp,
 }
@@ -25,8 +25,8 @@ impl Default for Application {
     fn default() -> Self {
         Self {
             user: User::default(),
-            login_status: None,
-            registration_status: None,
+            login_status: false,
+            registration_status: false,
             client: Client::new(),
             app_state: AppState::FirstUse,
             settings_sign_up: SettingsSignUp::default(),
@@ -146,8 +146,12 @@ impl eframe::App for Application {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(format!("App State: {:?}", self.app_state));
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    self.auth_combobox(ui);
+                });
             });
         });
+
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.app_state {
                 AppState::FirstUse => {
@@ -187,8 +191,18 @@ impl eframe::App for Application {
                     .ui(ui);
                     let login_status = ctx.memory(|mem| mem.data.get_temp("login_status".into()));
                     show_status(ui, login_status, "Login successful!", "Login failed!");
-                    if login_status.is_some() && login_status.unwrap() {
+                    if login_status == Some(true) {
                         self.app_state = AppState::Application;
+                        // Load the user data from memory
+                        if let Some(user_data) =
+                            ctx.memory(|mem| mem.data.get_temp::<UserData>("user_data".into()))
+                        {
+                            self.user.user_data = user_data;
+                        }
+                        // Remove temporary login status, but keep user data
+                        ctx.memory_mut(|mem| {
+                            mem.data.remove::<bool>("login_status".into());
+                        });
                     }
                 }
                 AppState::SignUp => {
@@ -240,6 +254,8 @@ impl eframe::App for Application {
                     );
                     if registration_status.is_some() && registration_status.unwrap() {
                         self.app_state = AppState::SignIn;
+                        self.user = User::default();
+                        ctx.memory_mut(|mem| mem.data.remove::<bool>("registration_status".into()));
                     }
                 }
                 AppState::Application => {
@@ -273,9 +289,7 @@ impl eframe::App for Application {
                         self.user.user_data.favorite_color,
                         format!("{:?}", self.user.user_data.favorite_color),
                     );
-                    if ui.button("Go home").clicked() {
-                        self.app_state = AppState::FirstUse;
-                    }
+
                     let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
                     show_status(
                         ui,
@@ -286,5 +300,39 @@ impl eframe::App for Application {
                 }
             };
         });
+    }
+}
+
+impl Application {
+    pub fn sign_out(&mut self) {
+        self.user = User::default();
+        self.app_state = AppState::FirstUse;
+        self.login_status = false;
+        self.registration_status = false;
+    }
+
+    pub fn auth_combobox(&mut self, ui: &mut Ui) {
+        let is_logged_in = matches!(self.app_state, AppState::Application);
+
+        ComboBox::from_label("")
+            .selected_text(if is_logged_in {
+                "User Actions"
+            } else {
+                match self.app_state {
+                    AppState::SignUp => "Sign Up",
+                    AppState::SignIn => "Sign In",
+                    _ => "Choose Action",
+                }
+            })
+            .show_ui(ui, |ui| {
+                if is_logged_in {
+                    if ui.selectable_label(false, "Sign Out").clicked() {
+                        self.sign_out();
+                    }
+                } else {
+                    ui.selectable_value(&mut self.app_state, AppState::SignUp, "Sign Up");
+                    ui.selectable_value(&mut self.app_state, AppState::SignIn, "Sign In");
+                }
+            });
     }
 }
