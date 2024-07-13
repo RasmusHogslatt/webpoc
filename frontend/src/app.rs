@@ -11,7 +11,7 @@ use std::future::Future;
 
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
-pub struct TemplateApp {
+pub struct Application {
     user: User,
     #[serde(skip)]
     client: Client,
@@ -21,7 +21,7 @@ pub struct TemplateApp {
     settings_sign_up: SettingsSignUp,
 }
 
-impl Default for TemplateApp {
+impl Default for Application {
     fn default() -> Self {
         Self {
             user: User::default(),
@@ -50,7 +50,7 @@ where
     });
 }
 
-impl TemplateApp {
+impl Application {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
@@ -137,7 +137,7 @@ impl TemplateApp {
     }
 }
 
-impl eframe::App for TemplateApp {
+impl eframe::App for Application {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
     }
@@ -154,7 +154,7 @@ impl eframe::App for TemplateApp {
                     FirstUseWidget::new(&mut self.app_state).ui(ui);
                 }
                 AppState::SignIn => {
-                    SignInWidget::new(&mut self.user, &|user| {
+                    SignInWidget::new(&mut self.user, &mut self.app_state, &|user| {
                         let username = user.username.clone();
                         let password = user.password.clone();
                         let client = self.client.clone();
@@ -187,11 +187,15 @@ impl eframe::App for TemplateApp {
                     .ui(ui);
                     let login_status = ctx.memory(|mem| mem.data.get_temp("login_status".into()));
                     show_status(ui, login_status, "Login successful!", "Login failed!");
+                    if login_status.is_some() && login_status.unwrap() {
+                        self.app_state = AppState::Application;
+                    }
                 }
                 AppState::SignUp => {
                     SignUpWidget::new(
                         &mut self.user,
                         &mut self.settings_sign_up.show_password,
+                        &mut self.app_state,
                         &|user| {
                             let username = user.username.clone();
                             let password = user.password.clone();
@@ -234,6 +238,9 @@ impl eframe::App for TemplateApp {
                         "Registration successful!",
                         "Registration failed!",
                     );
+                    if registration_status.is_some() && registration_status.unwrap() {
+                        self.app_state = AppState::Application;
+                    }
                 }
                 AppState::Application => {
                     let changed = ui

@@ -1,3 +1,4 @@
+use crate::app_states::AppState;
 use egui::{Color32, Response, TextEdit, Ui, Widget};
 use shared::User;
 
@@ -5,17 +6,20 @@ pub struct SignUpWidget<'a> {
     user: &'a mut User,
     show_password: &'a mut bool,
     on_submit: &'a dyn Fn(&User),
+    app_state: &'a mut AppState,
 }
 
 impl<'a> SignUpWidget<'a> {
     pub fn new(
         user: &'a mut User,
         show_password: &'a mut bool,
+        app_state: &'a mut AppState,
         on_submit: &'a dyn Fn(&User),
     ) -> Self {
         Self {
             user,
             show_password,
+            app_state,
             on_submit,
         }
     }
@@ -42,6 +46,9 @@ impl<'a> Widget for SignUpWidget<'a> {
             ui.checkbox(self.show_password, "Show password");
             if ui.button("Register").clicked() {
                 (self.on_submit)(self.user);
+            }
+            if ui.button("Back").clicked() {
+                *self.app_state = AppState::FirstUse;
             }
         })
         .response
