@@ -2,6 +2,7 @@ use crate::app::Application;
 use egui::Context;
 use reqwest::Client;
 use shared::{User, UserData};
+use std::future::Future;
 
 #[cfg(target_arch = "wasm32")]
 pub fn spawn_task<F: Future<Output = ()> + 'static>(future: F) {
@@ -108,38 +109,5 @@ impl Application {
                 }
             }
         });
-    }
-}
-pub async fn load_user_from_database(
-    username: &str,
-    password: &str,
-    client: &Client,
-) -> Result<Option<User>, reqwest::Error> {
-    let user = User {
-        username: username.to_string(),
-        password: password.to_string(),
-        email: String::new(), // We don't need to send the email for login
-        created_at: None,
-        last_login: None,
-        user_data: Default::default(),
-    };
-
-    let response = client
-        .post("http://138.68.94.119/api/login")
-        .json(&user)
-        .send()
-        .await?;
-
-    if response.status().is_success() {
-        let json: serde_json::Value = response.json().await?;
-        if json["status"] == "success" {
-            let mut user = user;
-            user.user_data = serde_json::from_value(json["user_data"].clone()).unwrap_or_default();
-            Ok(Some(user))
-        } else {
-            Ok(None)
-        }
-    } else {
-        Ok(None)
     }
 }
