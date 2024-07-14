@@ -1,21 +1,30 @@
 use crate::app_states::AppState;
 use egui::{Response, Ui, Widget};
 
-pub struct FirstUseWidget<'a> {
+pub struct WelcomeWidget<'a> {
     app_state: &'a mut AppState,
 }
 
-impl<'a> FirstUseWidget<'a> {
+impl<'a> WelcomeWidget<'a> {
     pub fn new(app_state: &'a mut AppState) -> Self {
         Self { app_state }
     }
 }
 
-impl Widget for FirstUseWidget<'_> {
+impl Widget for WelcomeWidget<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
-        ui.vertical(|ui| {
+        // welcome heading in center of the screen
+        ui.centered_and_justified(|ui| {
             ui.heading("Welcome to the app!");
-            ui.add_space(10.0);
+            // button to sign in to the left and sign up to the right
+            ui.horizontal(|ui| {
+                if ui.button("Sign In").clicked() {
+                    *self.app_state = AppState::SignIn;
+                }
+                if ui.button("Sign Up").clicked() {
+                    *self.app_state = AppState::SignUp;
+                }
+            });
         })
         .response
     }

@@ -2,6 +2,7 @@ use crate::app::Application;
 use egui::Context;
 use reqwest::Client;
 use shared::{User, UserData};
+#[cfg(target_arch = "wasm32")]
 use std::future::Future;
 
 #[cfg(target_arch = "wasm32")]

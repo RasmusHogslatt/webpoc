@@ -1,9 +1,10 @@
 use crate::app_states::AppState;
+#[cfg(target_arch = "wasm32")]
 use crate::database_interactions::*;
 use crate::settings::settings_sing_up::*;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
-use crate::widgets::welcome::FirstUseWidget;
+use crate::widgets::welcome::WelcomeWidget;
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -78,7 +79,7 @@ impl eframe::App for Application {
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.app_state {
                 AppState::WelcomePage => {
-                    FirstUseWidget::new(&mut self.app_state).ui(ui);
+                    WelcomeWidget::new(&mut self.app_state).ui(ui);
                 }
                 AppState::SignIn => {
                     SignInWidget::new(&mut self.user, &mut self.app_state, &|user| {
