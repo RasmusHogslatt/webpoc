@@ -7,6 +7,7 @@ use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shared::*;
+use std::fmt::format;
 use std::future::Future;
 
 #[derive(Deserialize, Serialize)]
@@ -28,7 +29,7 @@ impl Default for Application {
             login_status: false,
             registration_status: false,
             client: Client::new(),
-            app_state: AppState::FirstUse,
+            app_state: AppState::WelcomePage,
             settings_sign_up: SettingsSignUp::default(),
         }
     }
@@ -154,7 +155,7 @@ impl eframe::App for Application {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.app_state {
-                AppState::FirstUse => {
+                AppState::WelcomePage => {
                     FirstUseWidget::new(&mut self.app_state).ui(ui);
                 }
                 AppState::SignIn => {
@@ -306,33 +307,86 @@ impl eframe::App for Application {
 impl Application {
     pub fn sign_out(&mut self) {
         self.user = User::default();
-        self.app_state = AppState::FirstUse;
+        self.app_state = AppState::WelcomePage;
         self.login_status = false;
         self.registration_status = false;
     }
 
-    pub fn auth_combobox(&mut self, ui: &mut Ui) {
-        let is_logged_in = matches!(self.app_state, AppState::Application);
+    // pub fn auth_combobox(&mut self, ui: &mut Ui) {
+    //     let is_logged_in = matches!(self.app_state, AppState::Application);
 
-        ComboBox::from_label("")
-            .selected_text(if is_logged_in {
-                "User Actions"
-            } else {
-                match self.app_state {
-                    AppState::SignUp => "Sign Up",
-                    AppState::SignIn => "Sign In",
-                    _ => "Choose Action",
-                }
-            })
-            .show_ui(ui, |ui| {
-                if is_logged_in {
-                    if ui.selectable_label(false, "Sign Out").clicked() {
-                        self.sign_out();
-                    }
-                } else {
-                    ui.selectable_value(&mut self.app_state, AppState::SignUp, "Sign Up");
-                    ui.selectable_value(&mut self.app_state, AppState::SignIn, "Sign In");
-                }
-            });
+    //     ComboBox::from_label("")
+    //         .selected_text(if is_logged_in {
+    //             "User Actions"
+    //         } else {
+    //             match self.app_state {
+    //                 AppState::SignUp => "Sign Up",
+    //                 AppState::SignIn => "Sign In",
+    //                 _ => "Choose Action",
+    //             }
+    //         })
+    //         .show_ui(ui, |ui| {
+    //             if is_logged_in {
+    //                 if ui.selectable_label(false, "Sign Out").clicked() {
+    //                     self.sign_out();
+    //                 }
+    //             } else {
+    //                 ui.selectable_value(&mut self.app_state, AppState::SignUp, "Sign Up");
+    //                 ui.selectable_value(&mut self.app_state, AppState::SignIn, "Sign In");
+    //             }
+    //         });
+    // }
+
+    pub fn auth_combobox(&mut self, ui: &mut Ui) {
+        match self.app_state {
+            AppState::WelcomePage => {
+                ComboBox::from_label("User actions")
+                    .selected_text("First Use")
+                    .show_ui(ui, |ui| {
+                        if ui.selectable_label(false, "Sign In").clicked() {
+                            self.app_state = AppState::SignIn;
+                        }
+                        if ui.selectable_label(false, "Sign Up").clicked() {
+                            self.app_state = AppState::SignUp;
+                        }
+                    });
+            }
+            AppState::SignIn => {
+                ComboBox::from_label("Sign In")
+                    .selected_text("Sign In")
+                    .show_ui(ui, |ui| {
+                        if ui.selectable_label(false, "Sign Up").clicked() {
+                            self.app_state = AppState::SignUp;
+                        }
+                        if ui.selectable_label(false, "Welcome Page").clicked() {
+                            self.app_state = AppState::WelcomePage;
+                        }
+                    });
+            }
+            AppState::SignUp => {
+                ComboBox::from_label("Sign Up")
+                    .selected_text("Sign Up")
+                    .show_ui(ui, |ui| {
+                        if ui.selectable_label(false, "Sign In").clicked() {
+                            self.app_state = AppState::SignIn;
+                        }
+                        if ui.selectable_label(false, "Sign In").clicked() {
+                            self.app_state = AppState::SignIn;
+                        }
+                        if ui.selectable_label(false, "Welcome Page").clicked() {
+                            self.app_state = AppState::WelcomePage;
+                        }
+                    });
+            }
+            AppState::Application => {
+                ComboBox::from_label("Logged in as:")
+                    .selected_text(&self.user.username)
+                    .show_ui(ui, |ui| {
+                        if ui.selectable_label(false, "Sign Out").clicked() {
+                            self.sign_out();
+                        }
+                    });
+            }
+        }
     }
 }
