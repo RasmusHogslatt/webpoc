@@ -1,25 +1,25 @@
 use crate::app_states::AppState;
+use crate::database_interactions::*;
 use crate::settings::settings_sing_up::*;
-use crate::widgets::first_use::FirstUseWidget;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
+use crate::widgets::welcome::FirstUseWidget;
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shared::*;
-use std::fmt::format;
 use std::future::Future;
 
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct Application {
-    user: User,
+    pub user: User,
     #[serde(skip)]
-    client: Client,
-    login_status: bool,
-    registration_status: bool,
-    app_state: AppState,
-    settings_sign_up: SettingsSignUp,
+    pub client: Client,
+    pub login_status: bool,
+    pub registration_status: bool,
+    pub app_state: AppState,
+    pub settings_sign_up: SettingsSignUp,
 }
 
 impl Default for Application {
@@ -57,84 +57,6 @@ impl Application {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
         Default::default()
-    }
-
-    pub async fn verify_user(
-        username: String,
-        password: String,
-        client: Client,
-    ) -> Result<Option<UserData>, Box<dyn std::error::Error>> {
-        let user = User {
-            username,
-            password,
-            email: "".to_string(),
-            created_at: None,
-            last_login: None,
-            user_data: UserData::default(),
-        };
-        let response = client
-            .post("http://138.68.94.119/api/login")
-            .json(&user)
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            let json: serde_json::Value = response.json().await?;
-            println!("Login response JSON: {:?}", json); // Debug log
-
-            if json["status"] == "success" {
-                let user_data: UserData = serde_json::from_value(json["user_data"].clone())?;
-                println!("Parsed user data: {:?}", user_data); // Debug log
-                Ok(Some(user_data))
-            } else {
-                println!("Login failed with status: {:?}", json["status"]); // Debug log
-                Ok(None)
-            }
-        } else {
-            println!("Login failed with status code: {:?}", response.status()); // Debug log
-            Ok(None)
-        }
-    }
-    pub async fn update_user_data(
-        user: User,
-        client: Client,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
-        let response = client
-            .post("http://138.68.94.119/api/update_user_data")
-            .json(&user) // send the entire User object
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            Ok(true)
-        } else {
-            let error_message = response.text().await?;
-            println!("Failed to update user data: {:?}", error_message);
-            Ok(false)
-        }
-    }
-
-    pub async fn register_user(
-        username: String,
-        password: String,
-        email: String,
-        client: Client,
-    ) -> Result<bool, reqwest::Error> {
-        let user = User {
-            username,
-            password,
-            email,
-            created_at: None,
-            last_login: None,
-            user_data: UserData::default(),
-        };
-        let response = client
-            .post("http://138.68.94.119/api/register")
-            .json(&user)
-            .send()
-            .await?;
-
-        Ok(response.status().is_success())
     }
 }
 
@@ -260,44 +182,12 @@ impl eframe::App for Application {
                     }
                 }
                 AppState::Application => {
-                    let changed = ui
+                    if ui
                         .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
-                        .changed();
-                    if changed {
-                        let updated_user = self.user.clone();
-                        let client = self.client.clone();
-                        let ctx = ctx.clone();
-
-                        spawn_task(async move {
-                            match Self::update_user_data(updated_user, client).await {
-                                Ok(true) => {
-                                    ctx.request_repaint();
-                                    ctx.memory_mut(|mem| {
-                                        mem.data.insert_temp("update_status".into(), true);
-                                    });
-                                }
-                                _ => {
-                                    ctx.request_repaint();
-                                    ctx.memory_mut(|mem| {
-                                        mem.data.insert_temp("update_status".into(), false);
-                                    });
-                                }
-                            }
-                        });
+                        .changed()
+                    {
+                        self.save_to_database(ctx);
                     }
-
-                    ui.colored_label(
-                        self.user.user_data.favorite_color,
-                        format!("{:?}", self.user.user_data.favorite_color),
-                    );
-
-                    let update_status = ctx.memory(|mem| mem.data.get_temp("update_status".into()));
-                    show_status(
-                        ui,
-                        update_status,
-                        "User data updated successfully!",
-                        "Failed to update user data!",
-                    );
                 }
             };
         });
@@ -311,31 +201,6 @@ impl Application {
         self.login_status = false;
         self.registration_status = false;
     }
-
-    // pub fn auth_combobox(&mut self, ui: &mut Ui) {
-    //     let is_logged_in = matches!(self.app_state, AppState::Application);
-
-    //     ComboBox::from_label("")
-    //         .selected_text(if is_logged_in {
-    //             "User Actions"
-    //         } else {
-    //             match self.app_state {
-    //                 AppState::SignUp => "Sign Up",
-    //                 AppState::SignIn => "Sign In",
-    //                 _ => "Choose Action",
-    //             }
-    //         })
-    //         .show_ui(ui, |ui| {
-    //             if is_logged_in {
-    //                 if ui.selectable_label(false, "Sign Out").clicked() {
-    //                     self.sign_out();
-    //                 }
-    //             } else {
-    //                 ui.selectable_value(&mut self.app_state, AppState::SignUp, "Sign Up");
-    //                 ui.selectable_value(&mut self.app_state, AppState::SignIn, "Sign In");
-    //             }
-    //         });
-    // }
 
     pub fn auth_combobox(&mut self, ui: &mut Ui) {
         match self.app_state {
@@ -370,16 +235,13 @@ impl Application {
                         if ui.selectable_label(false, "Sign In").clicked() {
                             self.app_state = AppState::SignIn;
                         }
-                        if ui.selectable_label(false, "Sign In").clicked() {
-                            self.app_state = AppState::SignIn;
-                        }
                         if ui.selectable_label(false, "Welcome Page").clicked() {
                             self.app_state = AppState::WelcomePage;
                         }
                     });
             }
             AppState::Application => {
-                ComboBox::from_label("Logged in as:")
+                ComboBox::from_label("Signed in as:")
                     .selected_text(&self.user.username)
                     .show_ui(ui, |ui| {
                         if ui.selectable_label(false, "Sign Out").clicked() {

@@ -3,6 +3,7 @@
 pub mod app;
 pub use app::Application;
 pub mod app_states;
+pub mod database_interactions;
 
 pub mod settings;
 pub mod widgets;
