@@ -3,6 +3,9 @@
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
+    // Initialize the local SQLite database
+    frontend::database_interactions::init_local_db().expect("Failed to initialize local database");
+
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([400.0, 300.0])

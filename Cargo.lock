@@ -1547,6 +1547,7 @@ dependencies = [
  "getrandom",
  "log",
  "reqwest",
+ "rusqlite",
  "serde",
  "serde_json",
  "shared",
