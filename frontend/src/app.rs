@@ -8,6 +8,7 @@ use crate::widgets::welcome::WelcomeWidget;
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use shared::custom_traits::*;
 use shared::*;
 use std::future::Future;
 
@@ -72,6 +73,10 @@ impl eframe::App for Application {
                 ui.label(format!("App State: {:?}", self.app_state));
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     self.auth_combobox(ui);
+                    if ui.button("Add Machine").clicked() {
+                        // TODO: Add machine widget
+                    }
+                    self.machines_combobox(ui);
                 });
             });
         });
@@ -251,5 +256,35 @@ impl Application {
                     });
             }
         }
+    }
+
+    pub fn machines_combobox(&mut self, ui: &mut Ui) {
+        let mut label_text = "No Machines Created".to_string();
+        if self.user.user_data.selections.selected_machine.is_some()
+            && !self.user.user_data.machines.is_empty()
+        {
+            let machine_reference = self
+                .user
+                .user_data
+                .machines
+                .get(self.user.user_data.selections.selected_machine.unwrap());
+            label_text = machine_reference.unwrap().get_name();
+        }
+
+        ComboBox::from_label("Machine:")
+            .selected_text(label_text.clone())
+            .show_ui(ui, |ui| {
+                for (i, machine) in self.user.user_data.machines.iter().enumerate() {
+                    if ui
+                        .selectable_label(
+                            self.user.user_data.selections.selected_machine == Some(i),
+                            machine.get_name(),
+                        )
+                        .clicked()
+                    {
+                        self.user.user_data.selections.selected_machine = Some(i);
+                    }
+                }
+            });
     }
 }
