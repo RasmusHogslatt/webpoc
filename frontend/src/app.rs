@@ -1,10 +1,14 @@
-use crate::app_states::AppState;
+use crate::app_states::{AppState, OpenWindows, WidgetState};
 #[cfg(target_arch = "wasm32")]
 use crate::database_interactions::*;
 use crate::settings::settings_sing_up::*;
+use crate::singletons::Singletons;
+use crate::widgets::add_machine::AddMachineWindow;
+use crate::widgets::delete_machine::DeleteMachineWidget;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
+use eframe::App;
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -21,7 +25,10 @@ pub struct Application {
     pub login_status: bool,
     pub registration_status: bool,
     pub app_state: AppState,
+    pub widget_state: WidgetState,
+    pub open_windows: OpenWindows,
     pub settings_sign_up: SettingsSignUp,
+    pub singletons: Singletons,
 }
 
 impl Default for Application {
@@ -32,7 +39,10 @@ impl Default for Application {
             registration_status: false,
             client: Client::new(),
             app_state: AppState::WelcomePage,
+            widget_state: WidgetState::Default,
+            open_windows: OpenWindows::default(),
             settings_sign_up: SettingsSignUp::default(),
+            singletons: Singletons::default(),
         }
     }
 }
@@ -68,15 +78,50 @@ impl eframe::App for Application {
     }
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if self.singletons.should_save_user_data {
+            self.save_to_database(ctx);
+            self.singletons.should_save_user_data = false;
+        }
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(format!("App State: {:?}", self.app_state));
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    // User sign in/up
                     self.auth_combobox(ui);
-                    if ui.button("Add Machine").clicked() {
-                        // TODO: Add machine widget
+                    if self.app_state == AppState::Application {
+                        // Delete machine
+                        if ui.button("Delete Current Machine").clicked() {
+                            self.widget_state = WidgetState::DeleteMachine;
+                            self.open_windows.delete_machine_window_open = true;
+                        }
+                        if let Some(machine_index) = self.user.user_data.selections.selected_machine
+                        {
+                            let mut delete_machine_widget = DeleteMachineWidget::new(
+                                &mut self.user,
+                                &mut self.singletons,
+                                &mut self.app_state,
+                                &mut self.widget_state,
+                                machine_index,
+                            );
+                            delete_machine_widget
+                                .show(ctx, &mut self.open_windows.delete_machine_window_open);
+                        }
+                        // Add machine
+                        if ui.button("Add Machine").clicked() {
+                            self.widget_state = WidgetState::AddMachine;
+                            self.open_windows.add_machine_window_open = true;
+                        }
+                        let mut add_machine_window = AddMachineWindow::new(
+                            &mut self.user,
+                            &mut self.singletons,
+                            &mut self.app_state,
+                            &mut self.widget_state,
+                        );
+                        add_machine_window
+                            .show(ctx, &mut self.open_windows.add_machine_window_open);
+                        // Select machine
+                        self.machines_combobox(ui);
                     }
-                    self.machines_combobox(ui);
                 });
             });
         });
@@ -192,7 +237,7 @@ impl eframe::App for Application {
                         .color_edit_button_srgba(&mut self.user.user_data.favorite_color)
                         .changed()
                     {
-                        self.save_to_database(ctx);
+                        self.singletons.should_save_user_data = true;
                     }
                 }
             };
@@ -202,10 +247,11 @@ impl eframe::App for Application {
 
 impl Application {
     pub fn sign_out(&mut self) {
-        self.user = User::default();
+        self.singletons.should_save_user_data = true;
         self.app_state = AppState::WelcomePage;
         self.login_status = false;
         self.registration_status = false;
+        self.user = User::default();
     }
 
     pub fn auth_combobox(&mut self, ui: &mut Ui) {
@@ -251,6 +297,7 @@ impl Application {
                     .selected_text(&self.user.username)
                     .show_ui(ui, |ui| {
                         if ui.selectable_label(false, "Sign Out").clicked() {
+                            self.singletons.should_save_user_data = true;
                             self.sign_out();
                         }
                     });
@@ -259,7 +306,12 @@ impl Application {
     }
 
     pub fn machines_combobox(&mut self, ui: &mut Ui) {
-        let mut label_text = "No Machines Created".to_string();
+        let mut label_text = "".to_string();
+        if self.user.user_data.machines.is_empty() {
+            label_text = "No Machines Created".to_string();
+        } else if self.user.user_data.selections.selected_machine.is_none() {
+            label_text = "Select a Machine".to_string();
+        }
         if self.user.user_data.selections.selected_machine.is_some()
             && !self.user.user_data.machines.is_empty()
         {

@@ -13,21 +13,24 @@ impl<'a> WelcomeWidget<'a> {
 
 impl Widget for WelcomeWidget<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
-        // welcome heading in center of the screen
-        ui.centered_and_justified(|ui| {
-            ui.heading("Welcome to Dad's Machine Application!");
-            ui.end_row();
-            ui.heading(
-                "The place where your dreams come true and your machines are always running!",
-            );
-            // button to sign in to the left and sign up to the right
-            ui.horizontal(|ui| {
-                if ui.button("Sign In").clicked() {
-                    *self.app_state = AppState::SignIn;
-                }
-                if ui.button("Sign Up").clicked() {
-                    *self.app_state = AppState::SignUp;
-                }
+        ui.vertical_centered(|ui| {
+            ui.group(|ui| {
+                ui.heading("Welcome to Dad's Machine Application!");
+                ui.add_space(10.0);
+                ui.label(
+                    "The place where your dreams come true and your machines are always running!",
+                );
+
+                ui.add_space(5.0); // Optional: adds a little space above the buttons
+                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                    // ui.label("Please sign in or sign up to continue:");
+                    if ui.button("Sign In").clicked() {
+                        *self.app_state = AppState::SignIn;
+                    }
+                    if ui.button("Sign Up").clicked() {
+                        *self.app_state = AppState::SignUp;
+                    }
+                });
             });
         })
         .response

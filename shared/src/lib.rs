@@ -8,6 +8,7 @@ pub mod custom_traits;
 pub mod description;
 pub mod library;
 pub mod machine;
+pub mod magazine;
 pub mod selection;
 pub mod tools;
 

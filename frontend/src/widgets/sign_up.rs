@@ -44,9 +44,14 @@ impl<'a> Widget for SignUpWidget<'a> {
                 ui.text_edit_singleline(&mut self.user.email);
             });
             ui.checkbox(self.show_password, "Show password");
-            if ui.button("Register").clicked() {
-                (self.on_submit)(self.user);
-            }
+            ui.horizontal(|ui| {
+                if ui.button("Register").clicked() {
+                    (self.on_submit)(self.user);
+                }
+                if ui.button("Cancel").clicked() {
+                    *self.app_state = AppState::WelcomePage;
+                }
+            });
         })
         .response
     }

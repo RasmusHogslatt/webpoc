@@ -34,9 +34,14 @@ impl<'a> Widget for SignInWidget<'a> {
                 ui.label("Password: ");
                 ui.text_edit_singleline(&mut self.user.password);
             });
-            if ui.button("Sign In").clicked() {
-                (self.on_submit)(self.user);
-            }
+            ui.horizontal(|ui| {
+                if ui.button("Sign In").clicked() {
+                    (self.on_submit)(self.user);
+                }
+                if ui.button("Cancel").clicked() {
+                    *self.app_state = AppState::WelcomePage;
+                }
+            });
         })
         .response
     }
