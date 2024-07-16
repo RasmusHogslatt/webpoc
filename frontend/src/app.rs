@@ -4,7 +4,7 @@ use crate::database_interactions::*;
 use crate::settings::settings_sing_up::*;
 use crate::singletons::Singletons;
 use crate::widgets::add_machine::AddMachineWindow;
-use crate::widgets::delete_machine::DeleteMachineWidget;
+use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
@@ -96,14 +96,14 @@ impl eframe::App for Application {
                         }
                         if let Some(machine_index) = self.user.user_data.selections.selected_machine
                         {
-                            let mut delete_machine_widget = DeleteMachineWidget::new(
+                            let mut delete_machine_window = DeleteMachineWindow::new(
                                 &mut self.user,
                                 &mut self.singletons,
                                 &mut self.app_state,
                                 &mut self.widget_state,
                                 machine_index,
                             );
-                            delete_machine_widget
+                            delete_machine_window
                                 .show(ctx, &mut self.open_windows.delete_machine_window_open);
                         }
                         // Add machine

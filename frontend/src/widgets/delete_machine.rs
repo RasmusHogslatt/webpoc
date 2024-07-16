@@ -5,7 +5,7 @@ use crate::{
 use egui::{Context, Window};
 use shared::User;
 
-pub struct DeleteMachineWidget<'a> {
+pub struct DeleteMachineWindow<'a> {
     user: &'a mut User,
     singletons: &'a mut Singletons,
     app_state: &'a mut AppState,
@@ -13,7 +13,7 @@ pub struct DeleteMachineWidget<'a> {
     machine_index: usize,
 }
 
-impl<'a> DeleteMachineWidget<'a> {
+impl<'a> DeleteMachineWindow<'a> {
     pub fn new(
         user: &'a mut User,
         singletons: &'a mut Singletons,
