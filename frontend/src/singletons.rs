@@ -8,3 +8,12 @@ pub struct Singletons {
     pub description: Description,
     pub should_save_user_data: bool,
 }
+
+impl Singletons {
+    pub fn Reset(&mut self) {
+        self.machine = Machine::default();
+        self.magazine = Magazine::default();
+        self.description = Description::default();
+        self.should_save_user_data = false;
+    }
+}

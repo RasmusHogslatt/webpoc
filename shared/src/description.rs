@@ -4,3 +4,9 @@ use serde::{Deserialize, Serialize};
 pub struct Description {
     pub text: String,
 }
+
+impl Description {
+    pub fn new(text: String) -> Self {
+        Self { text }
+    }
+}

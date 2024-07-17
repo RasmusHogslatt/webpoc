@@ -90,7 +90,9 @@ impl eframe::App for Application {
                     self.auth_combobox(ui);
                     if self.app_state == AppState::Application {
                         // Delete machine
-                        if ui.button("Delete Current Machine").clicked() {
+                        if ui.button("Delete Current Machine").clicked()
+                            && self.user.user_data.selections.selected_machine.is_some()
+                        {
                             self.widget_state = WidgetState::DeleteMachine;
                             self.open_windows.delete_machine_window_open = true;
                         }

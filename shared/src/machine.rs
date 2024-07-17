@@ -1,5 +1,6 @@
 use crate::custom_traits::*;
 use crate::description::*;
+use crate::magazine::Magazine;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -8,6 +9,8 @@ pub struct Machine {
     pub manufacturer: String,
     pub model: String,
     pub description: Description,
+    pub magazine_count: usize,
+    pub magazines: Vec<Magazine>,
 }
 
 impl GetName for Machine {
@@ -28,6 +31,8 @@ impl Machine {
             manufacturer,
             model,
             description,
+            magazine_count: 0,
+            magazines: vec![],
         }
     }
 }

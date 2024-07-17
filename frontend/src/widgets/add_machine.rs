@@ -2,8 +2,8 @@ use crate::{
     app_states::{AppState, WidgetState},
     singletons::Singletons,
 };
-use egui::{Context, Window};
-use shared::User;
+use egui::{Context, Ui, Window};
+use shared::{magazine::Magazine, User};
 
 pub struct AddMachineWindow<'a> {
     user: &'a mut User,
@@ -49,7 +49,28 @@ impl<'a> AddMachineWindow<'a> {
                 ui.text_edit_singleline(&mut self.singletons.description.text);
             });
             ui.horizontal(|ui| {
+                ui.label("Number of Magazines");
+                ui.add(
+                    egui::widgets::Slider::new(&mut self.singletons.machine.magazine_count, 0..=10)
+                        .text("Magazines"),
+                );
+            });
+            if self.singletons.machine.magazine_count > 0 {
+                ui.label("Magazine Capacity: ");
+                ui.add(
+                    egui::widgets::Slider::new(&mut self.singletons.magazine.capacity, 1..=100)
+                        .text("Capacity"),
+                );
+            }
+            ui.horizontal(|ui| {
                 if ui.button("Add Machine").clicked() {
+                    // Create magazines
+                    for index in 0..self.singletons.machine.magazine_count {
+                        self.singletons
+                            .machine
+                            .magazines
+                            .push(Magazine::new(index, self.singletons.magazine.capacity));
+                    }
                     self.user
                         .user_data
                         .machines
@@ -60,6 +81,8 @@ impl<'a> AddMachineWindow<'a> {
                     *self.widget_state = WidgetState::Default;
                     should_close = true;
                     self.singletons.should_save_user_data = true;
+                    // Reset singletons
+                    self.singletons.Reset()
                 }
                 if ui.button("Cancel").clicked() {
                     *self.app_state = AppState::Application;
