@@ -4,7 +4,6 @@ use shared::User;
 
 pub struct SignUpWidget<'a> {
     user: &'a mut User,
-    show_password: &'a mut bool,
     on_submit: &'a dyn Fn(&User),
     app_state: &'a mut AppState,
 }
@@ -12,13 +11,11 @@ pub struct SignUpWidget<'a> {
 impl<'a> SignUpWidget<'a> {
     pub fn new(
         user: &'a mut User,
-        show_password: &'a mut bool,
         app_state: &'a mut AppState,
         on_submit: &'a dyn Fn(&User),
     ) -> Self {
         Self {
             user,
-            show_password,
             app_state,
             on_submit,
         }
@@ -36,14 +33,18 @@ impl<'a> Widget for SignUpWidget<'a> {
             ui.horizontal(|ui| {
                 ui.label("Password: ");
                 ui.add(
-                    TextEdit::singleline(&mut self.user.password).password(!*self.show_password),
+                    TextEdit::singleline(&mut self.user.password)
+                        .password(!self.user.user_data.settings.show_password),
                 );
             });
             ui.horizontal(|ui| {
                 ui.label("Email: ");
                 ui.text_edit_singleline(&mut self.user.email);
             });
-            ui.checkbox(self.show_password, "Show password");
+            ui.checkbox(
+                &mut self.user.user_data.settings.show_password,
+                "Show password",
+            );
             ui.horizontal(|ui| {
                 if ui.button("Register").clicked() {
                     (self.on_submit)(self.user);

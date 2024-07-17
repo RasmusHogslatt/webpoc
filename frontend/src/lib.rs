@@ -5,6 +5,4 @@ pub use app::Application;
 pub mod app_states;
 pub mod database_interactions;
 pub mod singletons;
-
-pub mod settings;
 pub mod widgets;

@@ -10,7 +10,7 @@ pub struct Singletons {
 }
 
 impl Singletons {
-    pub fn Reset(&mut self) {
+    pub fn reset(&mut self) {
         self.machine = Machine::default();
         self.magazine = Magazine::default();
         self.description = Description::default();

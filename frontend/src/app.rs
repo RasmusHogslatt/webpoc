@@ -1,14 +1,14 @@
 use crate::app_states::{AppState, OpenWindows, WidgetState};
 #[cfg(target_arch = "wasm32")]
 use crate::database_interactions::*;
-use crate::settings::settings_sing_up::*;
 use crate::singletons::Singletons;
 use crate::widgets::add_machine::AddMachineWindow;
 use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
-use eframe::App;
+use shared::settings::*;
+
 use egui::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,6 @@ pub struct Application {
     pub app_state: AppState,
     pub widget_state: WidgetState,
     pub open_windows: OpenWindows,
-    pub settings_sign_up: SettingsSignUp,
     pub singletons: Singletons,
 }
 
@@ -41,7 +40,6 @@ impl Default for Application {
             app_state: AppState::WelcomePage,
             widget_state: WidgetState::Default,
             open_windows: OpenWindows::default(),
-            settings_sign_up: SettingsSignUp::default(),
             singletons: Singletons::default(),
         }
     }
@@ -85,6 +83,9 @@ impl eframe::App for Application {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(format!("App State: {:?}", self.app_state));
+                if ui.button("Settings").on_hover_text("Settings").clicked() {
+                    self.widget_state = WidgetState::Settings;
+                }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // User sign in/up
                     self.auth_combobox(ui);
@@ -182,43 +183,36 @@ impl eframe::App for Application {
                     }
                 }
                 AppState::SignUp => {
-                    SignUpWidget::new(
-                        &mut self.user,
-                        &mut self.settings_sign_up.show_password,
-                        &mut self.app_state,
-                        &|user| {
-                            let username = user.username.clone();
-                            let password = user.password.clone();
-                            let email = user.email.clone();
-                            let client = self.client.clone();
-                            let ctx = ctx.clone();
+                    SignUpWidget::new(&mut self.user, &mut self.app_state, &|user| {
+                        let username = user.username.clone();
+                        let password = user.password.clone();
+                        let email = user.email.clone();
+                        let client = self.client.clone();
+                        let ctx = ctx.clone();
 
-                            spawn_task(async move {
-                                match Self::register_user(username, password, email, client).await {
-                                    Ok(is_registered) => {
-                                        ctx.request_repaint();
-                                        ctx.memory_mut(|mem| {
-                                            mem.data.insert_temp(
-                                                "registration_status".into(),
-                                                is_registered,
-                                            );
-                                        });
-                                    }
-                                    Err(e) => {
-                                        let error_message = format!("Registration failed: {:?}", e);
-                                        println!("{}", error_message);
-                                        ctx.request_repaint();
-                                        ctx.memory_mut(|mem| {
-                                            mem.data
-                                                .insert_temp("registration_status".into(), false);
-                                            mem.data
-                                                .insert_temp("error_message".into(), error_message);
-                                        });
-                                    }
+                        spawn_task(async move {
+                            match Self::register_user(username, password, email, client).await {
+                                Ok(is_registered) => {
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp(
+                                            "registration_status".into(),
+                                            is_registered,
+                                        );
+                                    });
                                 }
-                            });
-                        },
-                    )
+                                Err(e) => {
+                                    let error_message = format!("Registration failed: {:?}", e);
+                                    println!("{}", error_message);
+                                    ctx.request_repaint();
+                                    ctx.memory_mut(|mem| {
+                                        mem.data.insert_temp("registration_status".into(), false);
+                                        mem.data.insert_temp("error_message".into(), error_message);
+                                    });
+                                }
+                            }
+                        });
+                    })
                     .ui(ui);
                     let registration_status =
                         ctx.memory(|mem| mem.data.get_temp("registration_status".into()));

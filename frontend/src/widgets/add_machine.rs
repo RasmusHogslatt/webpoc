@@ -2,7 +2,7 @@ use crate::{
     app_states::{AppState, WidgetState},
     singletons::Singletons,
 };
-use egui::{Context, Ui, Window};
+use egui::{Context, Window};
 use shared::{magazine::Magazine, User};
 
 pub struct AddMachineWindow<'a> {
@@ -82,7 +82,7 @@ impl<'a> AddMachineWindow<'a> {
                     should_close = true;
                     self.singletons.should_save_user_data = true;
                     // Reset singletons
-                    self.singletons.Reset()
+                    self.singletons.reset()
                 }
                 if ui.button("Cancel").clicked() {
                     *self.app_state = AppState::Application;

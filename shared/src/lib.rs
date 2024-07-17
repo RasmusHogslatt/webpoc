@@ -3,6 +3,7 @@ use library::Library;
 use machine::Machine;
 use selection::Selections;
 use serde::{Deserialize, Serialize};
+use settings::*;
 
 pub mod custom_traits;
 pub mod description;
@@ -10,6 +11,7 @@ pub mod library;
 pub mod machine;
 pub mod magazine;
 pub mod selection;
+pub mod settings;
 pub mod tools;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -18,6 +20,7 @@ pub struct UserData {
     pub machines: Vec<Machine>,
     pub library: Library,
     pub selections: Selections,
+    pub settings: Settings,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]

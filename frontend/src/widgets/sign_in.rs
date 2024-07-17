@@ -1,5 +1,5 @@
 use crate::app_states::AppState;
-use egui::{Response, Ui, Widget};
+use egui::{Response, TextEdit, Ui, Widget};
 use shared::User;
 
 pub struct SignInWidget<'a> {
@@ -32,8 +32,15 @@ impl<'a> Widget for SignInWidget<'a> {
             });
             ui.horizontal(|ui| {
                 ui.label("Password: ");
-                ui.text_edit_singleline(&mut self.user.password);
+                ui.add(
+                    TextEdit::singleline(&mut self.user.password)
+                        .password(!self.user.user_data.settings.show_password),
+                );
             });
+            ui.checkbox(
+                &mut self.user.user_data.settings.show_password,
+                "Show password",
+            );
             ui.horizontal(|ui| {
                 if ui.button("Sign In").clicked() {
                     (self.on_submit)(self.user);

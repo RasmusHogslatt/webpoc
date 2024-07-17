@@ -13,6 +13,7 @@ pub enum WidgetState {
     Default,
     AddMachine,
     DeleteMachine,
+    Settings,
 }
 
 impl Default for WidgetState {
