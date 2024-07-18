@@ -57,6 +57,7 @@ impl<'a> DeleteMachineWindow<'a> {
                         }
                         *self.app_state = AppState::Application;
                         *self.widget_state = WidgetState::Default;
+                        self.user.user_data.selections.selected_machine = None;
                         should_close = true;
                         self.singletons.should_save_user_data = true;
                     }

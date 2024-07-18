@@ -1,12 +1,15 @@
 use serde::{Deserialize, Serialize};
 use shared::{description::Description, machine::Machine, magazine::Magazine};
 
+use crate::widgets::gripper_widget::GripperCalculationData;
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Singletons {
     pub machine: Machine,
     pub magazine: Magazine,
     pub description: Description,
     pub should_save_user_data: bool,
+    pub gripper_calculations: GripperCalculationData,
 }
 
 impl Singletons {
@@ -15,5 +18,6 @@ impl Singletons {
         self.magazine = Magazine::default();
         self.description = Description::default();
         self.should_save_user_data = false;
+        self.gripper_calculations = GripperCalculationData::default();
     }
 }

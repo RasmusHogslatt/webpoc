@@ -13,7 +13,9 @@ pub enum WidgetState {
     Default,
     AddMachine,
     DeleteMachine,
+    EditMachine,
     Settings,
+    GripperCalculation,
 }
 
 impl Default for WidgetState {
@@ -26,4 +28,7 @@ impl Default for WidgetState {
 pub struct OpenWindows {
     pub add_machine_window_open: bool,
     pub delete_machine_window_open: bool,
+    pub edit_machine_window_open: bool,
+    pub gripper_window_open: bool,
+    pub settings_window_open: bool,
 }

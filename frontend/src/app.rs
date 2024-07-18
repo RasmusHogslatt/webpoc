@@ -4,6 +4,8 @@ use crate::database_interactions::*;
 use crate::singletons::Singletons;
 use crate::widgets::add_machine::AddMachineWindow;
 use crate::widgets::delete_machine::DeleteMachineWindow;
+use crate::widgets::edit_machine::EditMachineWindow;
+use crate::widgets::gripper_widget::LatheBarGripperWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
@@ -91,12 +93,41 @@ impl eframe::App for Application {
                     self.auth_combobox(ui);
                     if self.app_state == AppState::Application {
                         // Delete machine
-                        if ui.button("Delete Current Machine").clicked()
-                            && self.user.user_data.selections.selected_machine.is_some()
+                        if self.user.user_data.selections.selected_machine.is_some()
+                            && ui.button("Delete Current Machine").clicked()
                         {
                             self.widget_state = WidgetState::DeleteMachine;
                             self.open_windows.delete_machine_window_open = true;
                         }
+                        // Edit machine
+                        if self.user.user_data.selections.selected_machine.is_some()
+                            && ui.button("Edit").clicked()
+                        {
+                            self.widget_state = WidgetState::EditMachine;
+                            self.open_windows.edit_machine_window_open = true;
+                        }
+                        // Select machine
+                        self.machines_combobox(ui);
+                        // Add machine
+                        if ui.button("Add Machine").clicked() {
+                            self.widget_state = WidgetState::AddMachine;
+                            self.open_windows.add_machine_window_open = true;
+                        }
+                        // Gripper calculation
+                        if ui.button("Gripper Calculation").clicked() {
+                            self.widget_state = WidgetState::GripperCalculation;
+                            self.open_windows.gripper_window_open = true;
+                        }
+                        /* Below adds the windows */
+                        let mut add_machine_window = AddMachineWindow::new(
+                            &mut self.user,
+                            &mut self.singletons,
+                            &mut self.app_state,
+                            &mut self.widget_state,
+                        );
+                        add_machine_window
+                            .show(ctx, &mut self.open_windows.add_machine_window_open);
+
                         if let Some(machine_index) = self.user.user_data.selections.selected_machine
                         {
                             let mut delete_machine_window = DeleteMachineWindow::new(
@@ -109,21 +140,26 @@ impl eframe::App for Application {
                             delete_machine_window
                                 .show(ctx, &mut self.open_windows.delete_machine_window_open);
                         }
-                        // Add machine
-                        if ui.button("Add Machine").clicked() {
-                            self.widget_state = WidgetState::AddMachine;
-                            self.open_windows.add_machine_window_open = true;
+
+                        if let Some(machine_index) = self.user.user_data.selections.selected_machine
+                        {
+                            let mut edit_machine_window = EditMachineWindow::new(
+                                &mut self.user,
+                                &mut self.singletons,
+                                &mut self.app_state,
+                                &mut self.widget_state,
+                                machine_index,
+                            );
+                            edit_machine_window
+                                .show(ctx, &mut self.open_windows.edit_machine_window_open);
                         }
-                        let mut add_machine_window = AddMachineWindow::new(
-                            &mut self.user,
-                            &mut self.singletons,
-                            &mut self.app_state,
-                            &mut self.widget_state,
-                        );
-                        add_machine_window
-                            .show(ctx, &mut self.open_windows.add_machine_window_open);
-                        // Select machine
-                        self.machines_combobox(ui);
+
+                        if self.open_windows.gripper_window_open {
+                            let mut gripper_window = LatheBarGripperWindow::new(
+                                &mut self.singletons.gripper_calculations,
+                            );
+                            gripper_window.show(ctx, &mut self.open_windows.gripper_window_open);
+                        }
                     }
                 });
             });
