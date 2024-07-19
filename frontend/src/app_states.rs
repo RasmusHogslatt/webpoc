@@ -16,6 +16,7 @@ pub enum WidgetState {
     EditMachine,
     Settings,
     GripperCalculation,
+    GripperFixedCalculation,
 }
 
 impl Default for WidgetState {
@@ -30,5 +31,6 @@ pub struct OpenWindows {
     pub delete_machine_window_open: bool,
     pub edit_machine_window_open: bool,
     pub gripper_window_open: bool,
+    pub gripper_fixed_window_open: bool,
     pub settings_window_open: bool,
 }

@@ -5,6 +5,7 @@ use crate::singletons::Singletons;
 use crate::widgets::add_machine::AddMachineWindow;
 use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::edit_machine::EditMachineWindow;
+use crate::widgets::gripper_fixed_widget::LatheBarGripperFixedWindow;
 use crate::widgets::gripper_widget::LatheBarGripperWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
@@ -118,6 +119,10 @@ impl eframe::App for Application {
                             self.widget_state = WidgetState::GripperCalculation;
                             self.open_windows.gripper_window_open = true;
                         }
+                        if ui.button("Gripper Fixed Calculation").clicked() {
+                            self.widget_state = WidgetState::GripperFixedCalculation;
+                            self.open_windows.gripper_fixed_window_open = true;
+                        }
                         /* Below adds the windows */
                         let mut add_machine_window = AddMachineWindow::new(
                             &mut self.user,
@@ -159,6 +164,13 @@ impl eframe::App for Application {
                                 &mut self.singletons.gripper_calculations,
                             );
                             gripper_window.show(ctx, &mut self.open_windows.gripper_window_open);
+                        }
+                        if self.open_windows.gripper_fixed_window_open {
+                            let mut gripper_fixed_window = LatheBarGripperFixedWindow::new(
+                                &mut self.singletons.gripper_fixed_calculations,
+                            );
+                            gripper_fixed_window
+                                .show(ctx, &mut self.open_windows.gripper_fixed_window_open);
                         }
                     }
                 });

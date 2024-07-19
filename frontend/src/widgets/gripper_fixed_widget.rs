@@ -9,7 +9,7 @@ pub const STROKE_HEIGHT: f32 = 20.0;
 pub const OFFSET_FROM_RIGHT: f32 = 35.0;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GripperCalculationData {
+pub struct GripperFixedCalculationData {
     // Material data
     pub bar_diameter: f32,
     pub bar_length: f32,
@@ -37,7 +37,7 @@ pub struct GripperCalculationData {
     grip_at_end_of_cutter: bool,
 }
 
-impl Default for GripperCalculationData {
+impl Default for GripperFixedCalculationData {
     fn default() -> Self {
         Self {
             bar_diameter: 20.0,
@@ -62,12 +62,12 @@ impl Default for GripperCalculationData {
     }
 }
 
-pub struct LatheBarGripperWindow<'a> {
-    pub gripper_calculation_data: &'a mut GripperCalculationData,
+pub struct LatheBarGripperFixedWindow<'a> {
+    pub gripper_calculation_data: &'a mut GripperFixedCalculationData,
 }
 
-impl<'a> LatheBarGripperWindow<'a> {
-    pub fn new(gripper_calculation_data: &'a mut GripperCalculationData) -> Self {
+impl<'a> LatheBarGripperFixedWindow<'a> {
+    pub fn new(gripper_calculation_data: &'a mut GripperFixedCalculationData) -> Self {
         Self {
             gripper_calculation_data,
         }
@@ -163,7 +163,7 @@ impl<'a> LatheBarGripperWindow<'a> {
         ));
 
         if ui.button("Reset").clicked() {
-            *self.gripper_calculation_data = GripperCalculationData::default();
+            *self.gripper_calculation_data = GripperFixedCalculationData::default();
         }
     }
 
