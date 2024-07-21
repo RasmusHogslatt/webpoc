@@ -10,6 +10,7 @@ use crate::widgets::gripper_widget::LatheBarGripperWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
+#[cfg(target_arch = "wasm32")]
 use shared::settings::*;
 
 use egui::*;
