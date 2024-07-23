@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub const SEGMENT_HEIGHT: f32 = 15.0;
 pub const STROKE_HEIGHT: f32 = 20.0;
 pub const OFFSET_FROM_RIGHT: f32 = 35.0;
+pub const CHUCK_END: f32 = 60.0;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GripperFixedCalculationData {
@@ -23,8 +24,10 @@ pub struct GripperFixedCalculationData {
     // Gripper data
     pub gripper_overextension: f32,
     pub gripping_point: f32,
+    pub margin_from_cut: f32,
     // Machine data
     pub z_zero: f32,
+    pub desired_safety_margin: f32,
     // Colors
     right_facing_stock_color: Color32,
     left_facing_stock_color: Color32,
@@ -33,8 +36,18 @@ pub struct GripperFixedCalculationData {
     gripper_color: Color32,
     bar_color: Color32,
     z_zero_color: Color32,
+    offset_from_cut_color: Color32,
+    pub desired_safety_margin_color: Color32,
+    // Options
     bar_start_is_z_zero: bool,
-    grip_at_end_of_cutter: bool,
+    // Position values
+    pub desired_safety_margin_end: f32,
+    pub gripping_extension_end: f32,
+    pub left_facing_stock_end: f32,
+    pub workpiece_end: f32,
+    pub right_facing_stock_end: f32,
+    // Calculation results
+    pub total_length_per_piece: f32,
 }
 
 impl Default for GripperFixedCalculationData {
@@ -57,7 +70,16 @@ impl Default for GripperFixedCalculationData {
             bar_color: Color32::GRAY,
             z_zero_color: Color32::YELLOW,
             bar_start_is_z_zero: true,
-            grip_at_end_of_cutter: true,
+            desired_safety_margin: 2.0,
+            desired_safety_margin_end: 0.0,
+            gripping_extension_end: 0.0,
+            left_facing_stock_end: 0.0,
+            workpiece_end: 0.0,
+            right_facing_stock_end: 0.0,
+            total_length_per_piece: 1.0,
+            desired_safety_margin_color: Color32::from_rgba_unmultiplied(255, 255, 0, 200),
+            margin_from_cut: 2.0,
+            offset_from_cut_color: Color32::from_rgba_unmultiplied(0, 255, 255, 200),
         }
     }
 }
@@ -121,6 +143,23 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
     fn options_ui(&mut self, ui: &mut Ui) {
         let data = &mut self.gripper_calculation_data;
 
+        data.desired_safety_margin_end = data.desired_safety_margin;
+        data.gripping_extension_end = data.desired_safety_margin_end + data.gripper_overextension;
+        data.left_facing_stock_end = data.gripping_extension_end + data.left_facing_stock;
+        data.workpiece_end = data.left_facing_stock_end + data.workpiece_length;
+        data.right_facing_stock_end = data.workpiece_end + data.right_facing_stock;
+        data.total_length_per_piece = data.desired_safety_margin
+            + data.gripper_overextension
+            + data.margin_from_cut
+            + data.cutter_width
+            + data.left_facing_stock
+            + data.workpiece_length
+            + data.right_facing_stock;
+        data.gripping_point = data.z_zero
+            + data.margin_from_cut
+            + data.cutter_width
+            + data.left_facing_stock
+            + data.workpiece_length;
         ui.add(Slider::new(&mut data.bar_diameter, 1.0..=100.0).text("Bar Diameter (mm)"));
         ui.add(Slider::new(&mut data.bar_length, 0.0..=1000.0).text("Bar Length (mm)"));
         ui.add(Slider::new(&mut data.workpiece_length, 0.0..=500.0).text("Workpiece Length (mm)"));
@@ -136,13 +175,9 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
                     .text("Gripper Overextension (mm)"),
             );
             ui.horizontal(|ui| {
-                let grip_at_end_of_cutter = data.grip_at_end_of_cutter;
-                ui.add_enabled(
-                    !grip_at_end_of_cutter,
-                    Slider::new(&mut data.gripping_point, 0.0..=data.bar_length)
-                        .text("Gripping Point (mm)"),
+                ui.add(
+                    Slider::new(&mut data.margin_from_cut, 0.0..=10.0).text("Offset from cut (mm)"),
                 );
-                ui.checkbox(&mut data.grip_at_end_of_cutter, "Set to end of cutter");
             });
         });
         ui.horizontal(|ui| {
@@ -156,6 +191,15 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
         if data.bar_start_is_z_zero {
             data.z_zero = 0.0;
         }
+        ui.horizontal(|ui| {
+            ui.add(
+                Slider::new(&mut data.desired_safety_margin, 0.0..=10.0).text("Safety Margin (mm)"),
+            );
+        });
+        ui.label(format!(
+            "Total Length per piece: {:.2} mm",
+            data.total_length_per_piece
+        ));
 
         ui.label(format!(
             "Current Gripping Point: {:.2} mm",
@@ -168,112 +212,200 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
     }
 
     fn visualization_frame(&mut self, ui: &mut Ui) {
+        let frame_size = Vec2::new(780.0, 400.0);
+
         Frame::none()
             .stroke(Stroke::new(1.0, Color32::GRAY))
             .show(ui, |ui| {
-                ui.set_max_width(780.0);
-                ui.set_max_height(400.0);
+                ui.set_max_width(frame_size.x);
+                ui.set_max_height(frame_size.y);
                 ui.heading("Visualization");
 
-                // Allocate space for painting
-                let (response, painter) = ui
-                    .allocate_painter(Vec2::new(ui.available_width(), 350.0), egui::Sense::hover());
+                // Create a custom frame for the visualization
+                let (response, painter) = ui.allocate_painter(frame_size, egui::Sense::hover());
+                let frame_rect = response.rect;
 
-                // Paint only within the allocated space
-                self.paint(&painter, response.rect);
+                // Paint within the frame using local coordinates
+                self.paint(&painter, frame_rect);
             });
     }
 
-    fn paint(&mut self, painter: &Painter, rect: Rect) {
+    fn paint(&mut self, painter: &Painter, frame_rect: Rect) {
         let data = &self.gripper_calculation_data.clone();
-        //paint rect.x_range values
+
+        // Calculate the scaling factor to fit the detail within the frame
+        let frame_width = frame_rect.width() - OFFSET_FROM_RIGHT * 2.0;
+        let scale_factor = frame_width / data.total_length_per_piece;
+
+        // DEBUG: Frame position
         painter.text(
-            rect.left_top() + Vec2::new(10.0, 10.0),
+            frame_rect.left_top() + Vec2::new(10.0, 10.0),
             Align2::LEFT_TOP,
-            format!("Frame position: {:?} {:?}", rect.x_range(), rect.y_range()),
+            format!(
+                "Frame position: {:?} {:?}",
+                frame_rect.x_range(),
+                frame_rect.y_range()
+            ),
             FontId::default(),
             Color32::BLACK,
         );
-        let start_right = rect.right() - OFFSET_FROM_RIGHT - data.z_zero;
-        let center_y = rect.center().y;
-        let below_bar_y = center_y + data.bar_diameter / 2.0;
-        let above_bar_y = center_y - data.bar_diameter / 2.0;
-        // Draw start right and center y
         painter.text(
-            rect.left_top() + Vec2::new(10.0, 30.0),
+            frame_rect.left_top() + Vec2::new(10.0, 30.0),
             Align2::LEFT_TOP,
-            format!("Start Right: {:?} Center Y: {:?}", start_right, center_y),
+            format!("Scale factor: {:?}", scale_factor),
             FontId::default(),
             Color32::BLACK,
+        );
+        // Common values
+        let center_y = frame_rect.center().y;
+        let below_bar_y = center_y + data.bar_diameter / 2.0;
+        let above_bar_y = center_y - data.bar_diameter / 2.0;
+
+        // Draw chuck
+        let chuck_start = frame_rect.left();
+        let chuck_end = chuck_start + CHUCK_END;
+        // Smallest diameter
+        let small_chuck_height = 40.0;
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=chuck_end,
+                above_bar_y - small_chuck_height..=above_bar_y,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
+        );
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=chuck_end,
+                below_bar_y..=below_bar_y + small_chuck_height,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
+        );
+        // Medium diameter
+        let medium_chuck_height = 60.0;
+        let medium_chuck_end = chuck_end - CHUCK_END / 4.0;
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=medium_chuck_end,
+                above_bar_y - medium_chuck_height..=above_bar_y,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
+        );
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=medium_chuck_end,
+                below_bar_y..=below_bar_y + medium_chuck_height,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
+        );
+        // Largest diameter
+        let large_chuck_height = 80.0;
+        let large_chuck_end = chuck_end - CHUCK_END / 2.0;
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=large_chuck_end,
+                above_bar_y - large_chuck_height..=above_bar_y,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
+        );
+        painter.rect_filled(
+            Rect::from_x_y_ranges(
+                chuck_start..=large_chuck_end,
+                below_bar_y..=below_bar_y + large_chuck_height,
+            ),
+            3.0,
+            Color32::DARK_GRAY,
         );
 
         // Draw the bar
-        let bar_top = center_y - data.bar_diameter / 2.0;
-        let bar_bottom = center_y + data.bar_diameter / 2.0;
-        let bar_start = rect.right() - OFFSET_FROM_RIGHT;
-        let bar_end = bar_start - data.bar_length;
+        let bar_start = chuck_end - (data.bar_length - data.total_length_per_piece) * scale_factor;
+        let bar_end = chuck_end + data.total_length_per_piece * scale_factor;
+        // let bar_end = self.to_pixel(data.bar_length, scale_factor, bar_start);
+        println!("Bar end: {:?}", bar_end);
+        println!("Bar start: {:?}", bar_end - data.bar_length * scale_factor);
+        println!("Furthest left: {:?}", frame_rect.left());
         painter.rect_filled(
-            Rect::from_x_y_ranges(bar_end..=bar_start, bar_top..=bar_bottom),
+            Rect::from_x_y_ranges(bar_start..=bar_end, above_bar_y..=below_bar_y),
             0.0,
             data.bar_color,
         );
-
-        // Draw right facing stock
-        let right_facing_stock_start = start_right;
-        let right_facing_stock_end = right_facing_stock_start - data.right_facing_stock;
+        // Draw safety margin
+        let safety_margin_start = chuck_end;
+        let safety_margin_end = safety_margin_start + data.desired_safety_margin_end * scale_factor;
         self.draw_section(
-            painter,
-            right_facing_stock_start,
-            right_facing_stock_end,
+            &painter,
+            safety_margin_start,
+            safety_margin_end,
             SEGMENT_HEIGHT,
-            15.0,
+            STROKE_HEIGHT,
             center_y,
-            data.right_facing_stock_color,
-            "Facing Stock",
-            true,
-            data.right_facing_stock,
-        );
-
-        // Draw workpiece
-        let workpiece_start = right_facing_stock_end;
-        let workpiece_end = workpiece_start - data.workpiece_length;
-        self.draw_section(
-            painter,
-            workpiece_start,
-            workpiece_end,
-            SEGMENT_HEIGHT,
-            15.0,
-            center_y,
-            data.workpiece_color,
-            "Workpiece",
+            data.desired_safety_margin_color,
+            "Safety Margin",
             false,
-            data.workpiece_length,
-        );
-        // Draw left facing stock
-        let left_facing_stock_start = workpiece_end;
-        let left_facing_stock_end = left_facing_stock_start - data.left_facing_stock;
-        self.draw_section(
-            painter,
-            left_facing_stock_start,
-            left_facing_stock_end,
-            SEGMENT_HEIGHT,
-            15.0,
-            center_y,
-            data.left_facing_stock_color,
-            "Facing Stock",
-            true,
-            data.left_facing_stock,
+            data.desired_safety_margin,
         );
 
-        // Draw the cutter
-        let cutter_start = left_facing_stock_end;
-        let cutter_end = cutter_start - data.cutter_width;
+        // Draw gripper overextension
+        let gripper_extension_start = safety_margin_end;
+        let gripper_extension_end =
+            gripper_extension_start + data.gripper_overextension * scale_factor;
         self.draw_section(
-            painter,
+            &painter,
+            gripper_extension_start,
+            gripper_extension_end,
+            SEGMENT_HEIGHT,
+            STROKE_HEIGHT,
+            center_y,
+            data.gripper_color,
+            "Gripper Extension",
+            true,
+            data.gripper_overextension,
+        );
+        // Arrow for gripping point
+        let arrow_length = 75.0;
+        painter.arrow(
+            Pos2::new(gripper_extension_end, above_bar_y - arrow_length),
+            Vec2::new(0.0, arrow_length),
+            Stroke::new(2.0, data.gripper_color),
+        );
+
+        let gripping_point_text = format!("Gripping Point: {:.2} mm", data.gripping_point);
+        self.draw_text(
+            &painter,
+            &gripping_point_text,
+            Pos2::new(gripper_extension_end, above_bar_y - arrow_length - 20.0),
+            data.gripper_color,
+        );
+
+        // Draw offset from cut
+        let offset_from_cut_start = gripper_extension_end;
+        let offset_from_cut_end = offset_from_cut_start + data.margin_from_cut * scale_factor;
+        self.draw_section(
+            &painter,
+            offset_from_cut_start,
+            offset_from_cut_end,
+            SEGMENT_HEIGHT,
+            STROKE_HEIGHT,
+            center_y,
+            data.offset_from_cut_color,
+            "Offset from Cut",
+            true,
+            data.margin_from_cut,
+        );
+
+        // Draw cutter
+        let cutter_start = offset_from_cut_end;
+        let cutter_end = cutter_start + data.cutter_width * scale_factor;
+        self.draw_section(
+            &painter,
             cutter_start,
             cutter_end,
             SEGMENT_HEIGHT,
-            15.0,
+            STROKE_HEIGHT,
             center_y,
             data.cutter_color,
             "Cutter",
@@ -281,70 +413,70 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             data.cutter_width,
         );
 
-        // Draw the gripper
-        let mut gripper_start = bar_start - data.gripping_point;
-        let mut gripper_end = gripper_start - data.gripper_overextension;
-        if data.grip_at_end_of_cutter {
-            gripper_start = cutter_end;
-            gripper_end = gripper_start - data.gripper_overextension;
-        }
-
+        // Draw left facing stock
+        let left_facing_stock_start = cutter_end;
+        let left_facing_stock_end = left_facing_stock_start + data.left_facing_stock * scale_factor;
         self.draw_section(
-            painter,
-            gripper_start,
-            gripper_end,
+            &painter,
+            left_facing_stock_start,
+            left_facing_stock_end,
             SEGMENT_HEIGHT,
-            15.0,
+            STROKE_HEIGHT,
             center_y,
-            data.gripper_color,
-            "Gripper extension",
-            true,
-            data.gripper_overextension,
-        );
-        painter.arrow(
-            Pos2::new(gripper_start, center_y + 5.0 * SEGMENT_HEIGHT),
-            Vec2::new(0.0, -(center_y + 5.0 * SEGMENT_HEIGHT - above_bar_y).abs()),
-            Stroke::new(1.0, data.gripper_color),
+            data.left_facing_stock_color,
+            "Left Facing Stock",
+            false,
+            data.left_facing_stock,
         );
 
-        let gripping_point_text = if data.grip_at_end_of_cutter {
-            format!("Grip point: {:.2} mm", bar_start - gripper_start)
-        } else {
-            format!("Grip point: {:.2} mm", data.gripping_point)
-        };
-
-        painter.text(
-            Pos2::new(gripper_start, center_y + 5.0 * SEGMENT_HEIGHT),
-            Align2::CENTER_TOP,
-            gripping_point_text,
-            FontId::default(),
-            data.gripper_color,
+        // Draw workpiece
+        let workpiece_start = left_facing_stock_end;
+        let workpiece_end = workpiece_start + data.workpiece_length * scale_factor;
+        self.draw_section(
+            &painter,
+            workpiece_start,
+            workpiece_end,
+            SEGMENT_HEIGHT,
+            STROKE_HEIGHT,
+            center_y,
+            data.workpiece_color,
+            "Workpiece",
+            false,
+            data.workpiece_length,
         );
 
-        // Draw Z zero indicator
-        let z_zero_x = bar_start - data.z_zero;
+        // Draw right facing stock
+        let right_facing_stock_start = workpiece_end;
+        let right_facing_stock_end =
+            right_facing_stock_start + data.right_facing_stock * scale_factor;
+        self.draw_section(
+            &painter,
+            right_facing_stock_start,
+            right_facing_stock_end,
+            SEGMENT_HEIGHT,
+            STROKE_HEIGHT,
+            center_y,
+            data.right_facing_stock_color,
+            "Right Facing Stock",
+            false,
+            data.right_facing_stock,
+        );
+
+        // Draw Z Zero
+        let z_zero_height_offset = 50.0;
+        let z_zero_start = workpiece_end;
         painter.line_segment(
             [
-                Pos2::new(z_zero_x, rect.top()),
-                Pos2::new(z_zero_x, rect.bottom()),
+                Pos2::new(z_zero_start, above_bar_y - z_zero_height_offset),
+                Pos2::new(z_zero_start, below_bar_y + z_zero_height_offset),
             ],
             Stroke::new(1.0, data.z_zero_color),
         );
-
-        // Draw labels
-        painter.text(
-            rect.left_bottom() + Vec2::new(10.0, -20.0),
-            Align2::LEFT_BOTTOM,
-            format!("Gripping Point: {:.2} mm", data.gripping_point),
-            FontId::default(),
-            Color32::WHITE,
-        );
-        painter.text(
-            rect.right_bottom() + Vec2::new(-10.0, -20.0),
-            Align2::RIGHT_BOTTOM,
-            format!("Z Zero: {:.2} mm", data.z_zero),
-            FontId::default(),
-            Color32::GREEN,
+        self.draw_text(
+            &painter,
+            "Z Zero",
+            Pos2::new(z_zero_start, above_bar_y - z_zero_height_offset - 20.0),
+            data.z_zero_color,
         );
     }
 
@@ -377,7 +509,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             let bar_edge_with_offset = bar_edge - segment_offset;
             painter.rect_filled(
                 Rect::from_x_y_ranges(
-                    end..=start,
+                    start..=end,
                     bar_edge_with_offset - segment_height..=bar_edge_with_offset,
                 ),
                 0.0,
@@ -416,7 +548,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             let bar_edge_with_offset = bar_edge + segment_offset;
             painter.rect_filled(
                 Rect::from_x_y_ranges(
-                    end..=start,
+                    start..=end,
                     bar_edge_with_offset..=bar_edge_with_offset + segment_height,
                 ),
                 0.0,
