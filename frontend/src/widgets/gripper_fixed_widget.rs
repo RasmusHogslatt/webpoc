@@ -8,6 +8,13 @@ pub const SEGMENT_HEIGHT: f32 = 15.0;
 pub const STROKE_HEIGHT: f32 = 20.0;
 pub const OFFSET_FROM_RIGHT: f32 = 35.0;
 pub const CHUCK_END: f32 = 60.0;
+pub const TEXT_SEGMENT_OFFSET_SMALL: f32 = 20.0;
+pub const TEXT_SEGMENT_OFFSET_LARGE: f32 = 60.0;
+
+pub const VISUALIZATION_FRAME_WIDTH: f32 = 780.0;
+pub const VISUALIZATION_FRAME_HEIGHT: f32 = 400.0;
+pub const OPTION_FRAME_WIDTH: f32 = VISUALIZATION_FRAME_WIDTH / 2.0 - 20.0;
+pub const OPTION_FRAME_HEIGHT: f32 = 300.0;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GripperFixedCalculationData {
@@ -38,8 +45,6 @@ pub struct GripperFixedCalculationData {
     z_zero_color: Color32,
     offset_from_cut_color: Color32,
     pub desired_safety_margin_color: Color32,
-    // Options
-    bar_start_is_z_zero: bool,
     // Position values
     pub desired_safety_margin_end: f32,
     pub gripping_extension_end: f32,
@@ -62,14 +67,13 @@ impl Default for GripperFixedCalculationData {
             gripper_overextension: 10.0,
             gripping_point: 100.0,
             z_zero: 0.0,
-            right_facing_stock_color: Color32::from_rgba_unmultiplied(60, 186, 167, 200),
-            left_facing_stock_color: Color32::from_rgba_unmultiplied(60, 186, 167, 200),
-            workpiece_color: Color32::from_rgba_unmultiplied(0, 66, 255, 135),
-            cutter_color: Color32::from_rgba_unmultiplied(228, 19, 30, 200),
-            gripper_color: Color32::from_rgba_unmultiplied(47, 39, 38, 200),
+            right_facing_stock_color: Color32::from_rgba_unmultiplied(60, 186, 167, 255),
+            left_facing_stock_color: Color32::from_rgba_unmultiplied(60, 186, 167, 255),
+            workpiece_color: Color32::from_rgba_unmultiplied(0, 66, 255, 255),
+            cutter_color: Color32::from_rgba_unmultiplied(228, 19, 30, 255),
+            gripper_color: Color32::from_rgba_unmultiplied(47, 39, 38, 255),
             bar_color: Color32::GRAY,
-            z_zero_color: Color32::YELLOW,
-            bar_start_is_z_zero: true,
+            z_zero_color: Color32::DARK_RED,
             desired_safety_margin: 2.0,
             desired_safety_margin_end: 0.0,
             gripping_extension_end: 0.0,
@@ -77,9 +81,9 @@ impl Default for GripperFixedCalculationData {
             workpiece_end: 0.0,
             right_facing_stock_end: 0.0,
             total_length_per_piece: 1.0,
-            desired_safety_margin_color: Color32::from_rgba_unmultiplied(255, 255, 0, 200),
+            desired_safety_margin_color: Color32::from_rgba_unmultiplied(156, 100, 200, 255),
             margin_from_cut: 2.0,
-            offset_from_cut_color: Color32::from_rgba_unmultiplied(0, 255, 255, 200),
+            offset_from_cut_color: Color32::from_rgba_unmultiplied(156, 100, 200, 255),
         }
     }
 }
@@ -100,7 +104,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
 
         Window::new("Lathe Bar Gripper")
             .open(open)
-            .resizable(true)
+            .resizable(false)
             .default_size([800.0, 800.0])
             .show(ctx, |ui| {
                 self.ui_contents(ui);
@@ -119,20 +123,29 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
         ui.heading("Lathe Bar Gripper Calculator");
 
         ui.add_space(10.0);
-
         ui.vertical(|ui| {
-            // Options frame
-            Frame::none()
-                .stroke(Stroke::new(1.0, Color32::GRAY))
-                .show(ui, |ui| {
-                    ui.set_max_width(780.0);
-                    ui.set_max_height(300.0);
+            ui.horizontal(|ui| {
+                // Options frame
+                Frame::none()
+                    .stroke(Stroke::new(1.0, Color32::BLACK))
+                    .show(ui, |ui| {
+                        ui.set_width(OPTION_FRAME_WIDTH);
+                        ui.set_height(OPTION_FRAME_HEIGHT);
 
-                    CollapsingHeader::new("Gripper Settings")
-                        .default_open(true)
-                        .show(ui, |ui| self.options_ui(ui));
-                });
+                        CollapsingHeader::new("Gripper Settings")
+                            .default_open(true)
+                            .show(ui, |ui| self.options_ui(ui));
+                    });
+                ui.add_space(30.0);
 
+                Frame::none()
+                    .stroke(Stroke::new(1.0, Color32::BLACK))
+                    .show(ui, |ui| {
+                        ui.set_width(OPTION_FRAME_WIDTH);
+                        ui.set_height(OPTION_FRAME_HEIGHT);
+                        ui.label("Results");
+                    });
+            });
             ui.add_space(20.0);
 
             // Visualization frame
@@ -181,17 +194,6 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             });
         });
         ui.horizontal(|ui| {
-            let bar_start_is_z_zero = data.bar_start_is_z_zero;
-            ui.add_enabled(
-                !bar_start_is_z_zero,
-                Slider::new(&mut data.z_zero, -100.0..=100.0).text("Z Zero (mm)"),
-            );
-            ui.checkbox(&mut data.bar_start_is_z_zero, "Set to end of bar");
-        });
-        if data.bar_start_is_z_zero {
-            data.z_zero = 0.0;
-        }
-        ui.horizontal(|ui| {
             ui.add(
                 Slider::new(&mut data.desired_safety_margin, 0.0..=10.0).text("Safety Margin (mm)"),
             );
@@ -212,10 +214,11 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
     }
 
     fn visualization_frame(&mut self, ui: &mut Ui) {
-        let frame_size = Vec2::new(780.0, 400.0);
+        let frame_size = Vec2::new(VISUALIZATION_FRAME_WIDTH, VISUALIZATION_FRAME_HEIGHT);
 
         Frame::none()
-            .stroke(Stroke::new(1.0, Color32::GRAY))
+            .stroke(Stroke::new(1.0, Color32::BLACK))
+            .fill(Color32::from_black_alpha(20))
             .show(ui, |ui| {
                 ui.set_max_width(frame_size.x);
                 ui.set_max_height(frame_size.y);
@@ -341,7 +344,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             safety_margin_start,
             safety_margin_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_LARGE,
             center_y,
             data.desired_safety_margin_color,
             "Safety Margin",
@@ -358,7 +361,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             gripper_extension_start,
             gripper_extension_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_SMALL,
             center_y,
             data.gripper_color,
             "Gripper Extension",
@@ -366,7 +369,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             data.gripper_overextension,
         );
         // Arrow for gripping point
-        let arrow_length = 75.0;
+        let arrow_length = 85.0;
         painter.arrow(
             Pos2::new(gripper_extension_end, above_bar_y - arrow_length),
             Vec2::new(0.0, arrow_length),
@@ -389,7 +392,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             offset_from_cut_start,
             offset_from_cut_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_LARGE,
             center_y,
             data.offset_from_cut_color,
             "Offset from Cut",
@@ -405,7 +408,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             cutter_start,
             cutter_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_SMALL,
             center_y,
             data.cutter_color,
             "Cutter",
@@ -421,7 +424,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             left_facing_stock_start,
             left_facing_stock_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_LARGE,
             center_y,
             data.left_facing_stock_color,
             "Left Facing Stock",
@@ -437,7 +440,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             workpiece_start,
             workpiece_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_SMALL,
             center_y,
             data.workpiece_color,
             "Workpiece",
@@ -454,7 +457,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             right_facing_stock_start,
             right_facing_stock_end,
             SEGMENT_HEIGHT,
-            STROKE_HEIGHT,
+            TEXT_SEGMENT_OFFSET_LARGE,
             center_y,
             data.right_facing_stock_color,
             "Right Facing Stock",
@@ -508,38 +511,46 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             let bar_edge = center_y - (self.gripper_calculation_data.bar_diameter / 2.0);
             let bar_edge_with_offset = bar_edge - segment_offset;
             painter.rect_filled(
-                Rect::from_x_y_ranges(
-                    start..=end,
-                    bar_edge_with_offset - segment_height..=bar_edge_with_offset,
-                ),
+                Rect::from_x_y_ranges(start..=end, bar_edge - segment_height..=bar_edge),
                 0.0,
                 color,
             );
+            // painter.line_segment(
+            //     [
+            //         Pos2::new(start, bar_edge),
+            //         Pos2::new(start, bar_edge - segment_height),
+            //     ],
+            //     Stroke::new(1.0, color),
+            // );
+            // painter.line_segment(
+            //     [
+            //         Pos2::new(end, bar_edge),
+            //         Pos2::new(end, bar_edge - segment_height),
+            //     ],
+            //     Stroke::new(1.0, color),
+            // );
+            // Center of segment to text
             painter.line_segment(
                 [
-                    Pos2::new(start, bar_edge),
-                    Pos2::new(start, bar_edge_with_offset - segment_height),
-                ],
-                Stroke::new(1.0, color),
-            );
-            painter.line_segment(
-                [
-                    Pos2::new(end, bar_edge),
-                    Pos2::new(end, bar_edge_with_offset - segment_height),
+                    Pos2::new(start + (end - start) / 2.0, bar_edge - segment_height),
+                    Pos2::new(
+                        start + (end - start) / 2.0,
+                        bar_edge - segment_height - segment_offset + 15.0,
+                    ),
                 ],
                 Stroke::new(1.0, color),
             );
             painter.text(
-                Pos2::new(center_range, bar_edge_with_offset - 2.0 * segment_height),
+                Pos2::new(center_range, bar_edge_with_offset - segment_height),
                 Align2::CENTER_TOP,
                 text.to_owned(),
                 FontId::default(),
                 color,
             );
             painter.text(
-                Pos2::new(center_range, bar_edge_with_offset - 3.0 * segment_height),
+                Pos2::new(center_range, bar_edge_with_offset - segment_height - 20.0),
                 Align2::CENTER_TOP,
-                format!("{:.2} mm", raw_value),
+                format!("{:.4} mm", raw_value),
                 FontId::default(),
                 color,
             );
@@ -547,36 +558,44 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             let bar_edge = center_y + (self.gripper_calculation_data.bar_diameter / 2.0);
             let bar_edge_with_offset = bar_edge + segment_offset;
             painter.rect_filled(
-                Rect::from_x_y_ranges(
-                    start..=end,
-                    bar_edge_with_offset..=bar_edge_with_offset + segment_height,
-                ),
+                Rect::from_x_y_ranges(start..=end, bar_edge..=bar_edge + segment_height),
                 0.0,
                 color,
             );
+            // painter.line_segment(
+            //     [
+            //         Pos2::new(start, bar_edge),
+            //         Pos2::new(start, bar_edge + segment_height),
+            //     ],
+            //     Stroke::new(1.0, color),
+            // );
+            // painter.line_segment(
+            //     [
+            //         Pos2::new(end, bar_edge),
+            //         Pos2::new(end, bar_edge + segment_height),
+            //     ],
+            //     Stroke::new(1.0, color),
+            // );
+            // Center of segment to text
             painter.line_segment(
                 [
-                    Pos2::new(start, bar_edge),
-                    Pos2::new(start, bar_edge_with_offset + segment_height),
-                ],
-                Stroke::new(1.0, color),
-            );
-            painter.line_segment(
-                [
-                    Pos2::new(end, bar_edge),
-                    Pos2::new(end, bar_edge_with_offset + segment_height),
+                    Pos2::new(start + (end - start) / 2.0, bar_edge + segment_height),
+                    Pos2::new(
+                        start + (end - start) / 2.0,
+                        bar_edge + segment_height + segment_offset - 15.0,
+                    ),
                 ],
                 Stroke::new(1.0, color),
             );
             painter.text(
-                Pos2::new(center_range, bar_edge_with_offset + 2.0 * segment_height),
+                Pos2::new(center_range, bar_edge_with_offset + segment_height),
                 Align2::CENTER_BOTTOM,
                 text.to_owned(),
                 FontId::default(),
                 color,
             );
             painter.text(
-                Pos2::new(center_range, bar_edge_with_offset + 3.0 * segment_height),
+                Pos2::new(center_range, bar_edge_with_offset + segment_height + 20.0),
                 Align2::CENTER_BOTTOM,
                 format!("{:.2} mm", raw_value),
                 FontId::default(),
