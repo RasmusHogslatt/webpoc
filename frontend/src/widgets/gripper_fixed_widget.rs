@@ -1,6 +1,6 @@
 use egui::{
-    Align2, CollapsingHeader, Color32, Context, FontId, Frame, Painter, Pos2, Rect, Slider, Stroke,
-    Ui, Vec2, Window,
+    color_picker::show_color, Align2, CollapsingHeader, Color32, Context, FontId, Frame, Painter,
+    Pos2, Rect, Slider, Stroke, Ui, Vec2, Window,
 };
 use serde::{Deserialize, Serialize};
 
@@ -53,12 +53,14 @@ pub struct GripperFixedCalculationData {
     pub right_facing_stock_end: f32,
     // Calculation results
     pub total_length_per_piece: f32,
+    pub total_possible_pieces: f32,
+    pub unused_material: f32,
 }
 
 impl Default for GripperFixedCalculationData {
     fn default() -> Self {
         Self {
-            bar_diameter: 20.0,
+            bar_diameter: 50.0,
             bar_length: 200.0,
             workpiece_length: 100.0,
             right_facing_stock: 2.0,
@@ -84,6 +86,8 @@ impl Default for GripperFixedCalculationData {
             desired_safety_margin_color: Color32::from_rgba_unmultiplied(156, 100, 200, 255),
             margin_from_cut: 2.0,
             offset_from_cut_color: Color32::from_rgba_unmultiplied(156, 100, 200, 255),
+            total_possible_pieces: 0.0,
+            unused_material: 0.0,
         }
     }
 }
@@ -131,10 +135,11 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
                     .show(ui, |ui| {
                         ui.set_width(OPTION_FRAME_WIDTH);
                         ui.set_height(OPTION_FRAME_HEIGHT);
-
-                        CollapsingHeader::new("Gripper Settings")
-                            .default_open(true)
-                            .show(ui, |ui| self.options_ui(ui));
+                        ui.vertical(|ui| {
+                            egui::ScrollArea::vertical().show(ui, |ui| {
+                                self.options_ui(ui);
+                            });
+                        });
                     });
                 ui.add_space(30.0);
 
@@ -143,13 +148,65 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
                     .show(ui, |ui| {
                         ui.set_width(OPTION_FRAME_WIDTH);
                         ui.set_height(OPTION_FRAME_HEIGHT);
-                        ui.label("Results");
+
+                        self.results_ui(ui);
                     });
             });
             ui.add_space(20.0);
 
             // Visualization frame
             self.visualization_frame(ui);
+        });
+    }
+
+    fn results_ui(&mut self, ui: &mut Ui) {
+        let data = &self.gripper_calculation_data;
+
+        ui.vertical(|ui| {
+            ui.label(format!(
+                "Total Length per piece: {:.2} mm",
+                data.total_length_per_piece
+            ))
+            .on_hover_ui(|ui| {
+                // Calculated as the sum of the following values:
+                ui.vertical(|ui| {
+                    ui.label(format!(
+                        "{:.2} mm (Safety margin)",
+                        data.desired_safety_margin
+                    ));
+                    ui.label(format!(
+                        "+ {:.2} mm (Gripper Extension)",
+                        data.gripper_overextension
+                    ));
+                    ui.label(format!(
+                        "+ {:.2} mm (Offset from cut)",
+                        data.margin_from_cut
+                    ));
+                    ui.label(format!("+ {:.2} mm (Cutter width)", data.cutter_width));
+                    ui.label(format!(
+                        "+ {:.2} mm (Left facing stock)",
+                        data.left_facing_stock
+                    ));
+                    ui.label(format!(
+                        "+ {:.2} mm (Workpiece length)",
+                        data.workpiece_length
+                    ));
+                    ui.separator();
+                    ui.label(format!("= {:.2} mm", data.total_length_per_piece));
+                });
+            });
+            ui.end_row();
+            ui.label(format!(
+                "The bar length of {:.2} mm can be utilized to produce a total of {:
+                } finished pieces.",
+                data.bar_length,
+                data.total_possible_pieces.floor()
+            ));
+            ui.end_row();
+            ui.label(format!(
+                "This leaves: {:.2} mm of material unused",
+                data.unused_material
+            ));
         });
     }
 
@@ -168,11 +225,14 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             + data.left_facing_stock
             + data.workpiece_length
             + data.right_facing_stock;
+        data.total_possible_pieces = data.bar_length / data.total_length_per_piece;
+        data.unused_material = data.total_possible_pieces.fract() * data.total_length_per_piece;
         data.gripping_point = data.z_zero
             + data.margin_from_cut
             + data.cutter_width
             + data.left_facing_stock
             + data.workpiece_length;
+
         ui.add(Slider::new(&mut data.bar_diameter, 1.0..=100.0).text("Bar Diameter (mm)"));
         ui.add(Slider::new(&mut data.bar_length, 0.0..=1000.0).text("Bar Length (mm)"));
         ui.add(Slider::new(&mut data.workpiece_length, 0.0..=500.0).text("Workpiece Length (mm)"));
@@ -222,7 +282,6 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
             .show(ui, |ui| {
                 ui.set_max_width(frame_size.x);
                 ui.set_max_height(frame_size.y);
-                ui.heading("Visualization");
 
                 // Create a custom frame for the visualization
                 let (response, painter) = ui.allocate_painter(frame_size, egui::Sense::hover());
@@ -240,25 +299,6 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
         let frame_width = frame_rect.width() - OFFSET_FROM_RIGHT * 2.0;
         let scale_factor = frame_width / data.total_length_per_piece;
 
-        // DEBUG: Frame position
-        painter.text(
-            frame_rect.left_top() + Vec2::new(10.0, 10.0),
-            Align2::LEFT_TOP,
-            format!(
-                "Frame position: {:?} {:?}",
-                frame_rect.x_range(),
-                frame_rect.y_range()
-            ),
-            FontId::default(),
-            Color32::BLACK,
-        );
-        painter.text(
-            frame_rect.left_top() + Vec2::new(10.0, 30.0),
-            Align2::LEFT_TOP,
-            format!("Scale factor: {:?}", scale_factor),
-            FontId::default(),
-            Color32::BLACK,
-        );
         // Common values
         let center_y = frame_rect.center().y;
         let below_bar_y = center_y + data.bar_diameter / 2.0;
@@ -328,9 +368,6 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
         let bar_start = chuck_end - (data.bar_length - data.total_length_per_piece) * scale_factor;
         let bar_end = chuck_end + data.total_length_per_piece * scale_factor;
         // let bar_end = self.to_pixel(data.bar_length, scale_factor, bar_start);
-        println!("Bar end: {:?}", bar_end);
-        println!("Bar start: {:?}", bar_end - data.bar_length * scale_factor);
-        println!("Furthest left: {:?}", frame_rect.left());
         painter.rect_filled(
             Rect::from_x_y_ranges(bar_start..=bar_end, above_bar_y..=below_bar_y),
             0.0,
