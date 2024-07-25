@@ -1,8 +1,9 @@
-use crate::app_states::{AppState, OpenWindows, WidgetState};
+use crate::app_states::{AppState, CentralViewState, OpenWindows, WidgetState};
 #[cfg(target_arch = "wasm32")]
 use crate::database_interactions::*;
 use crate::singletons::Singletons;
 use crate::widgets::add_machine::AddMachineWindow;
+use crate::widgets::add_tool::AddToolWindow;
 use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::edit_machine::EditMachineWindow;
 use crate::widgets::gripper_fixed_widget::LatheBarGripperFixedWindow;
@@ -29,6 +30,7 @@ pub struct Application {
     pub login_status: bool,
     pub registration_status: bool,
     pub app_state: AppState,
+    pub central_view_state: CentralViewState,
     pub widget_state: WidgetState,
     pub open_windows: OpenWindows,
     pub singletons: Singletons,
@@ -45,6 +47,7 @@ impl Default for Application {
             widget_state: WidgetState::Default,
             open_windows: OpenWindows::default(),
             singletons: Singletons::default(),
+            central_view_state: CentralViewState::default(),
         }
     }
 }
@@ -124,6 +127,27 @@ impl eframe::App for Application {
                             self.widget_state = WidgetState::GripperFixedCalculation;
                             self.open_windows.gripper_fixed_window_open = true;
                         }
+                        ui.separator();
+                        ui.selectable_value(
+                            &mut self.central_view_state,
+                            CentralViewState::Library,
+                            "Library",
+                        );
+                        ui.selectable_value(
+                            &mut self.central_view_state,
+                            CentralViewState::Magazine,
+                            "Magazine",
+                        );
+                        ui.separator();
+                        if ui.button("Add Tool").clicked() {
+                            self.widget_state = WidgetState::AddTool;
+                            self.open_windows.add_tool_window = true;
+                        }
+                        if ui.button("Add Holder").clicked() {
+                            self.widget_state = WidgetState::AddHolder;
+                            self.open_windows.add_holder_window = true;
+                        }
+
                         /* Below adds the windows */
                         let mut add_machine_window = AddMachineWindow::new(
                             &mut self.user,
@@ -133,6 +157,22 @@ impl eframe::App for Application {
                         );
                         add_machine_window
                             .show(ctx, &mut self.open_windows.add_machine_window_open);
+
+                        let mut add_tool_window = AddToolWindow::new(
+                            &mut self.user,
+                            &mut self.singletons,
+                            &mut self.app_state,
+                            &mut self.widget_state,
+                        );
+                        add_tool_window.show(ctx, &mut self.open_windows.add_tool_window);
+
+                        // let mut add_holder_window = AddHolderWindow::new(
+                        //     &mut self.user,
+                        //     &mut self.singletons,
+                        //     &mut self.app_state,
+                        //     &mut self.widget_state,
+                        // );
+                        // add_holder_window.show(ctx, &mut self.open_windows.add_holder_window_open);
 
                         if let Some(machine_index) = self.user.user_data.selections.selected_machine
                         {
@@ -283,6 +323,18 @@ impl eframe::App for Application {
                         .changed()
                     {
                         self.singletons.should_save_user_data = true;
+                    }
+                    match self.central_view_state {
+                        CentralViewState::Library => {
+                            // Show library
+                            ui.label("Library");
+                            // TODO
+                        }
+                        CentralViewState::Magazine => {
+                            // Show magazine
+                            ui.label("Magazine");
+                            // TODO
+                        }
                     }
                 }
             };

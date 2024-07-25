@@ -1,4 +1,6 @@
+pub mod add_holder;
 pub mod add_machine;
+pub mod add_tool;
 pub mod delete_machine;
 pub mod edit_machine;
 pub mod gripper_fixed_widget;

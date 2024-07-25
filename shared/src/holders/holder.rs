@@ -1,5 +1,3 @@
-use std::default;
-
 use serde::{Deserialize, Serialize};
 
 // Highest level holder
@@ -7,6 +5,12 @@ use serde::{Deserialize, Serialize};
 pub enum Holder {
     Rotating(RotatingHolder),
     Turning(TurningHolder),
+}
+
+impl Default for Holder {
+    fn default() -> Self {
+        Holder::Rotating(RotatingHolder::default())
+    }
 }
 
 // Second highest level holder
