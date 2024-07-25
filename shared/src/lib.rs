@@ -7,6 +7,7 @@ use settings::*;
 
 pub mod custom_traits;
 pub mod description;
+pub mod holders;
 pub mod library;
 pub mod machine;
 pub mod magazine;

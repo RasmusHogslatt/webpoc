@@ -1,5 +1,7 @@
-use crate::tools::rotating::*;
-use crate::tools::turning::*;
+use crate::holders::{
+    self,
+    holder::{RotatingHolder, TurningHolder},
+};
 use serde::{Deserialize, Serialize};
 
 // Highest level tool
@@ -17,27 +19,62 @@ impl Default for Tool {
 
 // Second highest level tool
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum RotatingTool {
-    Drill(DrillType),
-    Mill(MillType),
-    TapType(TapType),
-    BroachType(BroachType),
-    HolderType(HolderType),
+pub struct RotatingTool {
+    pub category: RotatingToolCategory,
+    pub holder: RotatingHolder,
+    pub diameter: f32,
 }
 
 impl Default for RotatingTool {
     fn default() -> Self {
-        RotatingTool::Drill(DrillType::default())
+        Self {
+            category: RotatingToolCategory::Empty,
+            holder: RotatingHolder::default(),
+            diameter: 1.0,
+        }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum TurningTool {
-    Lathe(LatheType),
+pub struct TurningTool {
+    pub category: TurningToolCategory,
+    pub holder: TurningHolder,
+    pub degree: f32,
 }
 
 impl Default for TurningTool {
     fn default() -> Self {
-        TurningTool::Lathe(LatheType::default())
+        Self {
+            category: TurningToolCategory::Empty,
+            holder: TurningHolder::default(),
+            degree: 15.0,
+        }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum RotatingToolCategory {
+    Empty,
+    BallNoseMill,
+    BoringTool,
+    ChamferMill,
+    DoveTailCutter,
+    DrillBit,
+    EndMill,
+    FaceMill,
+    Reamer,
+    SlotDrill,
+    ThreadMill,
+    TSlotCutter,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TurningToolCategory {
+    Empty,
+    TurningTool,
+    FacingTool,
+    BoringBar,
+    ThreadingTool,
+    GroovingPartingTool,
+    FormTool,
 }
