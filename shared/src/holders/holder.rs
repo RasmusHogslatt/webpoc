@@ -45,21 +45,21 @@ impl Default for TurningHolder {
 }
 
 // ------------- ROTATING HOLDERS ---------------- //
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum RotatingHolderCategory {
     #[default]
     Empty,
     Collet(ColletSubCategory),
-    EndMill(EndMillSubCategory),
-    ShellMill(ShellMillSubCategory),
-    ShrinkFit(ShrinkFitSubCategory),
-    Hydraulic(HydrauliScubCategory),
-    DrillChuck(DrillChuckSubCategory),
-    BoringHead(BoringHeadSubCategory),
-    Tapping(TappingSubCategory),
+    EndMill(EndMillSubcategory),
+    ShellMill(ShellMillSubcategory),
+    ShrinkFit(ShrinkFitSubcategory),
+    Hydraulic(HydraulicSubcategory),
+    DrillChuck(DrillChuckSubcategory),
+    BoringHead(BoringHeadSubcategory),
+    Tapping(TappingSubcategory),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ColletSubCategory {
     #[default]
     Empty,
@@ -68,46 +68,46 @@ pub enum ColletSubCategory {
     OZ,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum EndMillSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum EndMillSubcategory {
     #[default]
     Empty,
     WeldonFlat,
     MillingChuck,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum ShellMillSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum ShellMillSubcategory {
     #[default]
     Empty,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum ShrinkFitSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum ShrinkFitSubcategory {
     #[default]
     Empty,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum HydrauliScubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum HydraulicSubcategory {
     #[default]
     Empty,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum DrillChuckSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum DrillChuckSubcategory {
     #[default]
     Empty,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum BoringHeadSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum BoringHeadSubcategory {
     #[default]
     Empty,
     Adjustable,
     MicroAdjustable,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum TappingSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum TappingSubcategory {
     #[default]
     Empty,
     TensionCompression,
@@ -115,20 +115,20 @@ pub enum TappingSubCategory {
 }
 
 // ------------- TURNING HOLDERS ---------------- //
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum TurningHolderCategory {
     #[default]
     Empty,
-    External(ExternalSubCategory),
-    Internal(InternalSubCategory),
-    PartingGrooving(PartingGroovingSubCategory),
-    Threading(ThreadingSubCategory),
-    Form(FormSubCategory),
-    QuickChangePost(QuickChangePostSubCategory),
+    External(ExternalSubcategory),
+    Internal(InternalSubcategory),
+    PartingGrooving(PartingGroovingSubcategory),
+    Threading(ThreadingSubcategory),
+    Form(FormSubcategory),
+    QuickChangePost(QuickChangePostSubcategory),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum ExternalSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum ExternalSubcategory {
     #[default]
     Empty,
     RightHand,
@@ -136,34 +136,34 @@ pub enum ExternalSubCategory {
     Neutral,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum InternalSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum InternalSubcategory {
     #[default]
     Empty,
     BoringBar,
     InternalThreading,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum PartingGroovingSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum PartingGroovingSubcategory {
     #[default]
     Empty,
     BladeType,
     CartridgeType,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum ThreadingSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum ThreadingSubcategory {
     #[default]
     Empty,
     External,
     Internal,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum FormSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum FormSubcategory {
     #[default]
     Empty,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub enum QuickChangePostSubCategory {
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum QuickChangePostSubcategory {
     #[default]
     Empty,
     QCTP,
