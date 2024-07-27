@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::tools::tool::Handedness;
+
 // Highest level holder
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Holder {
@@ -18,6 +20,18 @@ impl Default for Holder {
 pub struct RotatingHolder {
     pub category: RotatingHolderCategory,
     pub diameter: f32,
+    pub length: f32,
+    pub max_rpm: u32,
+    pub coolant_through: bool,
+    pub tool_clamping_range: (f32, f32),
+    pub taper_type: String,
+    pub runout: f32,
+    pub balance_grade: String,
+    // New subcategory-specific fields
+    pub collet_type: String,                   // For Collet
+    pub weldon_flat_size: f32,                 // For EndMill (WeldonFlat)
+    pub adjustable_range: (f32, f32),          // For BoringHead
+    pub tension_compression_range: (f32, f32), // For Tapping (TensionCompression)
 }
 
 impl Default for RotatingHolder {
@@ -25,6 +39,17 @@ impl Default for RotatingHolder {
         Self {
             category: RotatingHolderCategory::Empty,
             diameter: 1.0,
+            length: 1.0,
+            max_rpm: 50000,
+            coolant_through: false,
+            tool_clamping_range: (0.0, 1.0),
+            taper_type: "".to_string(),
+            runout: 1.0,
+            balance_grade: "".to_string(),
+            collet_type: "".to_string(),
+            weldon_flat_size: 1.0,
+            adjustable_range: (0.0, 1.0),
+            tension_compression_range: (0.0, 1.0),
         }
     }
 }
@@ -33,6 +58,21 @@ impl Default for RotatingHolder {
 pub struct TurningHolder {
     pub category: TurningHolderCategory,
     pub degree: f32,
+    pub shank_height: f32,
+    pub shank_width: f32,
+    pub overall_length: f32,
+    pub insert_size: String,
+    pub handedness: Handedness,
+    pub coolant_type: String,
+    pub max_bore_depth: f32,
+    pub min_bore_diameter: f32,
+    pub max_cutting_diameter: f32,
+    pub quick_change_compatible: bool,
+    // New subcategory-specific fields
+    pub cartridge_type: String, // For PartingGrooving (CartridgeType)
+    pub thread_pitch_range: (f32, f32), // For Threading
+    pub form_profile: String,   // For Form
+    pub tool_post_size: String, // For QuickChangePost
 }
 
 impl Default for TurningHolder {
@@ -40,6 +80,20 @@ impl Default for TurningHolder {
         Self {
             category: TurningHolderCategory::Empty,
             degree: 15.0,
+            shank_height: 10.0,
+            shank_width: 10.0,
+            overall_length: 10.0,
+            insert_size: "".to_string(),
+            handedness: Handedness::Neutral,
+            coolant_type: "".to_string(),
+            max_bore_depth: 10.0,
+            min_bore_diameter: 1.0,
+            max_cutting_diameter: 3.0,
+            quick_change_compatible: false,
+            cartridge_type: "".to_string(),
+            thread_pitch_range: (0.0, 1.0),
+            form_profile: "".to_string(),
+            tool_post_size: "".to_string(),
         }
     }
 }

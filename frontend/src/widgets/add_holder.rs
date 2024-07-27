@@ -9,9 +9,9 @@ use shared::{
     holders::holder::{
         BoringHeadSubcategory, ColletSubCategory, DrillChuckSubcategory, EndMillSubcategory,
         ExternalSubcategory, FormSubcategory, HydraulicSubcategory, InternalSubcategory,
-        PartingGroovingSubcategory, QuickChangePostSubcategory, RotatingHolderCategory,
-        ShellMillSubcategory, ShrinkFitSubcategory, TappingSubcategory, ThreadingSubcategory,
-        TurningHolderCategory,
+        PartingGroovingSubcategory, QuickChangePostSubcategory, RotatingHolder,
+        RotatingHolderCategory, ShellMillSubcategory, ShrinkFitSubcategory, TappingSubcategory,
+        ThreadingSubcategory, TurningHolder, TurningHolderCategory,
     },
     magazine::Magazine,
     tools::tool::{
@@ -123,7 +123,7 @@ impl<'a> AddHolderWindow<'a> {
 
                         match &mut rotating_holder.category {
                             RotatingHolderCategory::Empty => {
-                                // TODO: Add parameters here
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::Collet(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -150,6 +150,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "OZ",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::EndMill(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -171,6 +172,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Milling Chuck",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::ShellMill(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -182,6 +184,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Empty",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::ShrinkFit(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -193,6 +196,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Empty",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::Hydraulic(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -204,6 +208,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Empty",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::DrillChuck(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -215,6 +220,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Empty",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::BoringHead(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -236,6 +242,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Micro Adjustable",
                                         );
                                     });
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                             RotatingHolderCategory::Tapping(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -257,12 +264,11 @@ impl<'a> AddHolderWindow<'a> {
                                             "Rigid",
                                         );
                                     });
-                                // TODO: Ui for parameters here
+                                rotating_holder_settings_default(ui, rotating_holder);
                             }
                         }
                     }
                     crate::app_states::HolderTypeSelection::Turning => {
-                        // TODO
                         let turning_holder = &mut self.singletons.turning_holder;
 
                         ComboBox::from_label("Category")
@@ -312,6 +318,7 @@ impl<'a> AddHolderWindow<'a> {
                         match &mut turning_holder.category {
                             TurningHolderCategory::Empty => {
                                 // TODO: Parameter ui here
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::External(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -338,6 +345,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Neutral",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::Internal(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -359,6 +367,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Internal Threading",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::PartingGrooving(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -380,6 +389,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Cartride Type",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::Threading(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -401,6 +411,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Internal",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::Form(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -412,6 +423,7 @@ impl<'a> AddHolderWindow<'a> {
                                             "Empty",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                             TurningHolderCategory::QuickChangePost(subcategory) => {
                                 ComboBox::from_label("Subcategory")
@@ -428,13 +440,14 @@ impl<'a> AddHolderWindow<'a> {
                                             "QCTP",
                                         );
                                     });
+                                turning_holder_settings_default(ui, turning_holder);
                             }
                         }
                     }
                 }
 
                 ui.horizontal(|ui| {
-                    if ui.button("Add Tool").clicked() {
+                    if ui.button("Add Holder").clicked() {
                         *self.app_state = AppState::Application;
                         *self.widget_state = WidgetState::Default;
                         should_close = true;
@@ -453,4 +466,140 @@ impl<'a> AddHolderWindow<'a> {
             *open = false;
         }
     }
+}
+
+pub fn rotating_holder_settings_default(ui: &mut Ui, rotating_holder: &mut RotatingHolder) {
+    egui::Grid::new("add_rotating_holder_default")
+        .num_columns(2)
+        .show(ui, |ui| {
+            ui.label("Diameter");
+            ui.add(egui::DragValue::new(&mut rotating_holder.diameter));
+            ui.end_row();
+            ui.label("Length");
+            ui.add(egui::DragValue::new(&mut rotating_holder.length));
+            ui.end_row();
+            ui.label("Maximum RPM");
+            ui.add(egui::DragValue::new(&mut rotating_holder.max_rpm));
+            ui.end_row();
+            ui.label("Coolant Through");
+            ui.checkbox(&mut rotating_holder.coolant_through, "Coolant through");
+            ui.end_row();
+            ui.label("Tool Clamping Range");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.tool_clamping_range.0,
+                ));
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.tool_clamping_range.1,
+                ));
+            });
+            ui.end_row();
+            ui.label("Taper Type");
+            ui.text_edit_singleline(&mut rotating_holder.taper_type);
+            ui.end_row();
+            ui.label("Runout");
+            ui.add(egui::DragValue::new(&mut rotating_holder.runout));
+            ui.end_row();
+            ui.label("Balance Grade");
+            ui.text_edit_singleline(&mut rotating_holder.balance_grade);
+            ui.end_row();
+            ui.label("Collet Type");
+            ui.text_edit_singleline(&mut rotating_holder.collet_type);
+            ui.end_row();
+            ui.label("Weldon Flat Size");
+            ui.add(egui::DragValue::new(&mut rotating_holder.weldon_flat_size));
+            ui.end_row();
+            ui.label("Adjustable Range");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.adjustable_range.0,
+                ));
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.adjustable_range.1,
+                ));
+            });
+            ui.end_row();
+            ui.label("Tension Compression Range");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.tension_compression_range.0,
+                ));
+                ui.add(egui::DragValue::new(
+                    &mut rotating_holder.tension_compression_range.1,
+                ));
+            });
+        });
+}
+
+pub fn turning_holder_settings_default(ui: &mut Ui, turning_holder: &mut TurningHolder) {
+    egui::Grid::new("add_boring_tool")
+        .num_columns(2)
+        .show(ui, |ui| {
+            ui.label("Handedness");
+            egui::ComboBox::from_label("")
+                .selected_text(turning_holder.handedness.to_string())
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut turning_holder.handedness,
+                        Handedness::Neutral,
+                        "Neutral",
+                    );
+                    ui.selectable_value(&mut turning_holder.handedness, Handedness::Left, "Left");
+                    ui.selectable_value(&mut turning_holder.handedness, Handedness::Right, "Right");
+                });
+            ui.end_row();
+            ui.label("Degree");
+            ui.add(egui::DragValue::new(&mut turning_holder.degree));
+            ui.end_row();
+            ui.label("Shank Height");
+            ui.add(egui::DragValue::new(&mut turning_holder.shank_height));
+            ui.end_row();
+            ui.label("Shank Width");
+            ui.add(egui::DragValue::new(&mut turning_holder.shank_width));
+            ui.end_row();
+            ui.label("Overall Length");
+            ui.add(egui::DragValue::new(&mut turning_holder.overall_length));
+            ui.end_row();
+            ui.label("Insert Size");
+            ui.text_edit_singleline(&mut turning_holder.insert_size);
+            ui.end_row();
+            ui.label("Coolant Type");
+            ui.text_edit_singleline(&mut turning_holder.coolant_type);
+            ui.end_row();
+            ui.label("Maximum Bore Depth");
+            ui.add(egui::DragValue::new(&mut turning_holder.max_bore_depth));
+            ui.end_row();
+            ui.label("Minimum Bore Diameter");
+            ui.add(egui::DragValue::new(&mut turning_holder.min_bore_diameter));
+            ui.end_row();
+            ui.label("Maximum Cutting Diameter");
+            ui.add(egui::DragValue::new(
+                &mut turning_holder.max_cutting_diameter,
+            ));
+            ui.end_row();
+            ui.label("Quick-Change Compatible");
+            ui.checkbox(
+                &mut turning_holder.quick_change_compatible,
+                "Quick-Change Compatible",
+            );
+            ui.end_row();
+            ui.label("Cartridge Type");
+            ui.text_edit_singleline(&mut turning_holder.cartridge_type);
+            ui.end_row();
+            ui.label("Thread Pitch Range");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(
+                    &mut turning_holder.thread_pitch_range.0,
+                ));
+                ui.add(egui::DragValue::new(
+                    &mut turning_holder.thread_pitch_range.1,
+                ));
+            });
+            ui.end_row();
+            ui.label("Form Profile");
+            ui.text_edit_singleline(&mut turning_holder.form_profile);
+            ui.end_row();
+            ui.label("Tool Post Size");
+            ui.text_edit_singleline(&mut turning_holder.tool_post_size);
+        });
 }

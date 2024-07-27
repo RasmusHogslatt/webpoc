@@ -287,7 +287,7 @@ impl<'a> AddToolWindow<'a> {
 }
 
 pub fn rotating_tool_settings_default(ui: &mut Ui, rotating_tool: &mut RotatingTool) {
-    egui::Grid::new("add_boring_tool")
+    egui::Grid::new("add_rotating_tool_default")
         .num_columns(2)
         .show(ui, |ui| {
             ui.label("Cutting diameter");
@@ -319,7 +319,7 @@ pub fn rotating_tool_settings_default(ui: &mut Ui, rotating_tool: &mut RotatingT
 }
 
 pub fn turning_tool_settings_default(ui: &mut Ui, turning_tool: &mut TurningTool) {
-    egui::Grid::new("add_boring_tool")
+    egui::Grid::new("add_turning_tool_default")
         .num_columns(2)
         .show(ui, |ui| {
             ui.label("Handedness");
