@@ -6,6 +6,7 @@ use crate::{
 };
 use egui::{ComboBox, Context, Ui, Window};
 use shared::{
+    custom_traits::SetSlot,
     magazine::Magazine,
     tools::tool::{
         Handedness, RotatingTool, RotatingToolCategory, TurningTool, TurningToolCategory,
@@ -266,6 +267,28 @@ impl<'a> AddToolWindow<'a> {
 
                 ui.horizontal(|ui| {
                     if ui.button("Add Tool").clicked() {
+                        match self.singletons.tool_type_selection {
+                            ToolTypeSelection::Rotating => {
+                                let mut tool = self.singletons.rotating_tool.clone();
+                                let index = self.user.user_data.library.tools.len();
+                                tool.set_library_slot(Some(index));
+                                self.user
+                                    .user_data
+                                    .library
+                                    .tools
+                                    .push(shared::tools::tool::Tool::Rotating(tool));
+                            }
+                            ToolTypeSelection::Turning => {
+                                let mut tool = self.singletons.turning_tool.clone();
+                                let index = self.user.user_data.library.tools.len();
+                                tool.set_library_slot(Some(index));
+                                self.user
+                                    .user_data
+                                    .library
+                                    .tools
+                                    .push(shared::tools::tool::Tool::Turning(tool));
+                            }
+                        }
                         *self.app_state = AppState::Application;
                         *self.widget_state = WidgetState::Default;
                         should_close = true;

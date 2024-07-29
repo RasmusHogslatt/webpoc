@@ -6,9 +6,10 @@ use crate::{
 };
 use egui::{ComboBox, Context, Ui, Window};
 use shared::{
+    custom_traits::SetSlot,
     holders::holder::{
         BoringHeadSubcategory, ColletSubCategory, DrillChuckSubcategory, EndMillSubcategory,
-        ExternalSubcategory, FormSubcategory, HydraulicSubcategory, InternalSubcategory,
+        ExternalSubcategory, FormSubcategory, Holder, HydraulicSubcategory, InternalSubcategory,
         PartingGroovingSubcategory, QuickChangePostSubcategory, RotatingHolder,
         RotatingHolderCategory, ShellMillSubcategory, ShrinkFitSubcategory, TappingSubcategory,
         ThreadingSubcategory, TurningHolder, TurningHolderCategory,
@@ -448,6 +449,28 @@ impl<'a> AddHolderWindow<'a> {
 
                 ui.horizontal(|ui| {
                     if ui.button("Add Holder").clicked() {
+                        match self.singletons.holder_type_selection {
+                            HolderTypeSelection::Rotating => {
+                                let mut holder = self.singletons.rotating_holder.clone();
+                                let index = self.user.user_data.library.holder.len();
+                                holder.set_library_slot(Some(index));
+                                self.user
+                                    .user_data
+                                    .library
+                                    .holder
+                                    .push(shared::holders::holder::Holder::Rotating(holder));
+                            }
+                            HolderTypeSelection::Turning => {
+                                let mut holder = self.singletons.turning_holder.clone();
+                                let index = self.user.user_data.library.holder.len();
+                                holder.set_library_slot(Some(index));
+                                self.user
+                                    .user_data
+                                    .library
+                                    .holder
+                                    .push(shared::holders::holder::Holder::Turning(holder));
+                            }
+                        }
                         *self.app_state = AppState::Application;
                         *self.widget_state = WidgetState::Default;
                         should_close = true;

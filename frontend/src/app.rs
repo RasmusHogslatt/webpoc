@@ -9,6 +9,7 @@ use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::edit_machine::EditMachineWindow;
 use crate::widgets::gripper_fixed_widget::LatheBarGripperFixedWindow;
 use crate::widgets::gripper_widget::LatheBarGripperWindow;
+use crate::widgets::library_widget::LibraryWidget;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
@@ -329,6 +330,15 @@ impl eframe::App for Application {
                         CentralViewState::Library => {
                             // Show library
                             ui.label("Library");
+                            ui.label(format!(
+                                "Total tools: {:?}",
+                                self.user.user_data.library.tools.len()
+                            ));
+                            ui.label(format!(
+                                "Total holders: {:?}",
+                                self.user.user_data.library.holder.len()
+                            ));
+                            LibraryWidget::new(&mut self.user, &mut self.singletons).ui(ui);
                             // TODO
                         }
                         CentralViewState::Magazine => {

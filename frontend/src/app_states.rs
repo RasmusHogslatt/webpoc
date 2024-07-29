@@ -18,6 +18,30 @@ pub enum CentralViewState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum LibraryViewState {
+    #[default]
+    Tool,
+    Holder,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum SortState {
+    #[default]
+    Index,
+    Diameter,
+    Degree,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum FilterState {
+    #[default]
+    RotatingToolCategory,
+    RotatingHolderCategory,
+    TurningToolCategory,
+    TurningHolderCategory,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ToolTypeSelection {
     #[default]
     Rotating,

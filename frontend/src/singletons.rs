@@ -1,14 +1,18 @@
 use serde::{Deserialize, Serialize};
 use shared::{
     description::Description,
-    holders::holder::{Holder, RotatingHolder, TurningHolder},
+    holders::holder::{
+        Holder, RotatingHolder, RotatingHolderCategory, TurningHolder, TurningHolderCategory,
+    },
     machine::Machine,
     magazine::Magazine,
-    tools::tool::{RotatingTool, Tool, TurningTool},
+    tools::tool::{RotatingTool, RotatingToolCategory, Tool, TurningTool, TurningToolCategory},
 };
 
 use crate::{
-    app_states::{HolderTypeSelection, ToolTypeSelection},
+    app_states::{
+        FilterState, HolderTypeSelection, LibraryViewState, SortState, ToolTypeSelection,
+    },
     widgets::{
         gripper_fixed_widget::GripperFixedCalculationData, gripper_widget::GripperCalculationData,
     },
@@ -28,6 +32,9 @@ pub struct Singletons {
     pub turning_holder: TurningHolder,
     pub tool_type_selection: ToolTypeSelection,
     pub holder_type_selection: HolderTypeSelection,
+    pub library_view_state: LibraryViewState,
+    pub sort_state: SortState,
+    pub filter_state: FilterState,
 }
 
 impl Singletons {
