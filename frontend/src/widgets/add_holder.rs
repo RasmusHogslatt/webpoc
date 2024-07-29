@@ -67,7 +67,6 @@ impl<'a> AddHolderWindow<'a> {
                     crate::app_states::HolderTypeSelection::Rotating => {
                         let rotating_holder = &mut self.singletons.rotating_holder;
                         // Choose category here
-                        //
                         ComboBox::from_label("Category")
                             .selected_text(format!("{:?}", rotating_holder.category))
                             .show_ui(ui, |ui| {
@@ -79,46 +78,46 @@ impl<'a> AddHolderWindow<'a> {
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::Collet(ColletSubCategory::Empty),
-                                    "Ball Nose Mill",
+                                    "Collet",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::EndMill(EndMillSubcategory::Empty),
-                                    "Boring Tool",
+                                    "End Mill",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::ShellMill(ShellMillSubcategory::Empty),
-                                    "Chamfer Mill",
+                                    "Shell Mill",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::ShrinkFit(ShrinkFitSubcategory::Empty),
-                                    "Dove Tail Cutter",
+                                    "Shrink Fit",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::Hydraulic(HydraulicSubcategory::Empty),
-                                    "Drill Bit",
+                                    "Hydraulic",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::DrillChuck(
                                         DrillChuckSubcategory::Empty,
                                     ),
-                                    "End Mill",
+                                    "Drill Chuck",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::BoringHead(
                                         BoringHeadSubcategory::Empty,
                                     ),
-                                    "Face Mill",
+                                    "Boring Head",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::Tapping(TappingSubcategory::Empty),
-                                    "Reamer",
+                                    "Tapping",
                                 );
                             });
 
@@ -387,7 +386,7 @@ impl<'a> AddHolderWindow<'a> {
                                         ui.selectable_value(
                                             subcategory,
                                             PartingGroovingSubcategory::CartridgeType,
-                                            "Cartride Type",
+                                            "Cartridge Type",
                                         );
                                     });
                                 turning_holder_settings_default(ui, turning_holder);
