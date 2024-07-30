@@ -20,6 +20,7 @@ use shared::{
     },
     User,
 };
+use uuid::Uuid;
 
 pub struct AddHolderWindow<'a> {
     user: &'a mut User,
@@ -77,46 +78,52 @@ impl<'a> AddHolderWindow<'a> {
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::Collet(ColletSubCategory::Empty),
+                                    RotatingHolderCategory::Collet(ColletSubCategory::default()),
                                     "Collet",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::EndMill(EndMillSubcategory::Empty),
+                                    RotatingHolderCategory::EndMill(EndMillSubcategory::default()),
                                     "End Mill",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::ShellMill(ShellMillSubcategory::Empty),
+                                    RotatingHolderCategory::ShellMill(
+                                        ShellMillSubcategory::default(),
+                                    ),
                                     "Shell Mill",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::ShrinkFit(ShrinkFitSubcategory::Empty),
+                                    RotatingHolderCategory::ShrinkFit(
+                                        ShrinkFitSubcategory::default(),
+                                    ),
                                     "Shrink Fit",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::Hydraulic(HydraulicSubcategory::Empty),
+                                    RotatingHolderCategory::Hydraulic(
+                                        HydraulicSubcategory::default(),
+                                    ),
                                     "Hydraulic",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::DrillChuck(
-                                        DrillChuckSubcategory::Empty,
+                                        DrillChuckSubcategory::default(),
                                     ),
                                     "Drill Chuck",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
                                     RotatingHolderCategory::BoringHead(
-                                        BoringHeadSubcategory::Empty,
+                                        BoringHeadSubcategory::default(),
                                     ),
                                     "Boring Head",
                                 );
                                 ui.selectable_value(
                                     &mut rotating_holder.category,
-                                    RotatingHolderCategory::Tapping(TappingSubcategory::Empty),
+                                    RotatingHolderCategory::Tapping(TappingSubcategory::default()),
                                     "Tapping",
                                 );
                             });
@@ -129,11 +136,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            ColletSubCategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             ColletSubCategory::ER,
@@ -158,11 +160,6 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            EndMillSubcategory::Empty,
-                                            "Empty",
-                                        );
-                                        ui.selectable_value(
-                                            subcategory,
                                             EndMillSubcategory::WeldonFlat,
                                             "Weldon Flat",
                                         );
@@ -180,8 +177,8 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            ShellMillSubcategory::Empty,
-                                            "Empty",
+                                            ShellMillSubcategory::ShellMill,
+                                            "Shell Mill",
                                         );
                                     });
                                 rotating_holder_settings_default(ui, rotating_holder);
@@ -192,8 +189,8 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            ShrinkFitSubcategory::Empty,
-                                            "Empty",
+                                            ShrinkFitSubcategory::ShrinkFit,
+                                            "Shrink Fit",
                                         );
                                     });
                                 rotating_holder_settings_default(ui, rotating_holder);
@@ -204,8 +201,8 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            HydraulicSubcategory::Empty,
-                                            "Empty",
+                                            HydraulicSubcategory::Hydraulic,
+                                            "Hydraulic",
                                         );
                                     });
                                 rotating_holder_settings_default(ui, rotating_holder);
@@ -216,8 +213,8 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            DrillChuckSubcategory::Empty,
-                                            "Empty",
+                                            DrillChuckSubcategory::DrillChuck,
+                                            "Drill Chuck",
                                         );
                                     });
                                 rotating_holder_settings_default(ui, rotating_holder);
@@ -226,11 +223,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            BoringHeadSubcategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             BoringHeadSubcategory::Adjustable,
@@ -248,11 +240,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            TappingSubcategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             TappingSubcategory::TensionCompression,
@@ -276,40 +263,37 @@ impl<'a> AddHolderWindow<'a> {
                             .show_ui(ui, |ui| {
                                 ui.selectable_value(
                                     &mut turning_holder.category,
-                                    TurningHolderCategory::Empty,
-                                    "Empty",
-                                );
-                                ui.selectable_value(
-                                    &mut turning_holder.category,
-                                    TurningHolderCategory::Internal(InternalSubcategory::Empty),
+                                    TurningHolderCategory::Internal(InternalSubcategory::default()),
                                     "Internal Turning Holder",
                                 );
                                 ui.selectable_value(
                                     &mut turning_holder.category,
-                                    TurningHolderCategory::External(ExternalSubcategory::Empty),
+                                    TurningHolderCategory::External(ExternalSubcategory::default()),
                                     "External Turning Holder",
                                 );
                                 ui.selectable_value(
                                     &mut turning_holder.category,
                                     TurningHolderCategory::PartingGrooving(
-                                        PartingGroovingSubcategory::Empty,
+                                        PartingGroovingSubcategory::default(),
                                     ),
                                     "Parting/Grooving Holder",
                                 );
                                 ui.selectable_value(
                                     &mut turning_holder.category,
-                                    TurningHolderCategory::Threading(ThreadingSubcategory::Empty),
+                                    TurningHolderCategory::Threading(
+                                        ThreadingSubcategory::default(),
+                                    ),
                                     "Threading Holder",
                                 );
                                 ui.selectable_value(
                                     &mut turning_holder.category,
-                                    TurningHolderCategory::Form(FormSubcategory::Empty),
+                                    TurningHolderCategory::Form(FormSubcategory::default()),
                                     "Form Holder",
                                 );
                                 ui.selectable_value(
                                     &mut turning_holder.category,
                                     TurningHolderCategory::QuickChangePost(
-                                        QuickChangePostSubcategory::Empty,
+                                        QuickChangePostSubcategory::default(),
                                     ),
                                     "Quick-Change Post Holder",
                                 );
@@ -324,11 +308,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            ExternalSubcategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             ExternalSubcategory::RightHand,
@@ -353,11 +332,6 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            InternalSubcategory::Empty,
-                                            "Empty",
-                                        );
-                                        ui.selectable_value(
-                                            subcategory,
                                             InternalSubcategory::BoringBar,
                                             "Boring Bar",
                                         );
@@ -373,11 +347,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            PartingGroovingSubcategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             PartingGroovingSubcategory::BladeType,
@@ -397,11 +366,6 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            ThreadingSubcategory::Empty,
-                                            "Empty",
-                                        );
-                                        ui.selectable_value(
-                                            subcategory,
                                             ThreadingSubcategory::External,
                                             "External",
                                         );
@@ -419,7 +383,7 @@ impl<'a> AddHolderWindow<'a> {
                                     .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             subcategory,
-                                            FormSubcategory::Empty,
+                                            FormSubcategory::Form,
                                             "Empty",
                                         );
                                     });
@@ -429,11 +393,6 @@ impl<'a> AddHolderWindow<'a> {
                                 ComboBox::from_label("Subcategory")
                                     .selected_text(format!("{:?}", subcategory))
                                     .show_ui(ui, |ui| {
-                                        ui.selectable_value(
-                                            subcategory,
-                                            QuickChangePostSubcategory::Empty,
-                                            "Empty",
-                                        );
                                         ui.selectable_value(
                                             subcategory,
                                             QuickChangePostSubcategory::QCTP,
@@ -451,22 +410,26 @@ impl<'a> AddHolderWindow<'a> {
                         match self.singletons.holder_type_selection {
                             HolderTypeSelection::Rotating => {
                                 let mut holder = self.singletons.rotating_holder.clone();
-                                let index = self.user.user_data.library.holder.len();
+                                let index = self.user.user_data.library.holders.len();
+                                let uuid = Uuid::new_v4().to_string();
+                                holder.uuid = uuid;
                                 holder.set_library_slot(Some(index));
                                 self.user
                                     .user_data
                                     .library
-                                    .holder
+                                    .holders
                                     .push(shared::holders::holder::Holder::Rotating(holder));
                             }
                             HolderTypeSelection::Turning => {
                                 let mut holder = self.singletons.turning_holder.clone();
-                                let index = self.user.user_data.library.holder.len();
+                                let index = self.user.user_data.library.holders.len();
+                                let uuid = Uuid::new_v4().to_string();
+                                holder.uuid = uuid;
                                 holder.set_library_slot(Some(index));
                                 self.user
                                     .user_data
                                     .library
-                                    .holder
+                                    .holders
                                     .push(shared::holders::holder::Holder::Turning(holder));
                             }
                         }
@@ -494,6 +457,9 @@ pub fn rotating_holder_settings_default(ui: &mut Ui, rotating_holder: &mut Rotat
     egui::Grid::new("add_rotating_holder_default")
         .num_columns(2)
         .show(ui, |ui| {
+            ui.label("Duplicates");
+            ui.add(egui::DragValue::new(&mut rotating_holder.duplicates));
+            ui.end_row();
             ui.label("Diameter");
             ui.add(egui::DragValue::new(&mut rotating_holder.diameter));
             ui.end_row();
@@ -557,6 +523,9 @@ pub fn turning_holder_settings_default(ui: &mut Ui, turning_holder: &mut Turning
     egui::Grid::new("add_boring_tool")
         .num_columns(2)
         .show(ui, |ui| {
+            ui.label("Duplicates");
+            ui.add(egui::DragValue::new(&mut turning_holder.duplicates));
+            ui.end_row();
             ui.label("Handedness");
             egui::ComboBox::from_label("")
                 .selected_text(turning_holder.handedness.to_string())

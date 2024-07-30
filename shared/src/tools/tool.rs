@@ -2,16 +2,18 @@ use core::fmt;
 use egui::Ui;
 use enum_iterator::Sequence;
 use std::{default, fmt::write};
+use uuid::Uuid;
 
 use crate::{
     custom_traits::{
         GetDegree, GetDiameter, GetRotatingToolCategory, GetSlot, GetToolType,
-        GetTurningToolCategory, SetSlot, UiDisplay,
+        GetTurningToolCategory, GetUuid, SetSlot, UiDisplay,
     },
     holders::{
         self,
         holder::{RotatingHolder, TurningHolder},
     },
+    LIBRARY_COLUMN_WIDTH,
 };
 use serde::{Deserialize, Serialize};
 
@@ -25,6 +27,26 @@ pub enum Tool {
 impl Default for Tool {
     fn default() -> Self {
         Tool::Rotating(RotatingTool::default())
+    }
+}
+
+impl GetUuid for Tool {
+    fn get_uuid(&self) -> String {
+        match self {
+            Tool::Rotating(x) => x.get_uuid(),
+            Tool::Turning(x) => x.get_uuid(),
+        }
+    }
+}
+impl GetUuid for RotatingTool {
+    fn get_uuid(&self) -> String {
+        self.uuid.to_string()
+    }
+}
+
+impl GetUuid for TurningTool {
+    fn get_uuid(&self) -> String {
+        self.uuid.to_string()
     }
 }
 
@@ -131,48 +153,85 @@ fn turning_tool_hover_ui(ui: &mut Ui, turning_tool: &TurningTool) {
 impl UiDisplay for RotatingTool {
     fn display(&self, ui: &mut egui::Ui) {
         let response = ui.group(|ui| {
-            ui.vertical(|ui| {
-                ui.label(format!("Category: {}", self.category));
-                ui.label(format!("Cutting Diameter: {:.2} mm", self.cutting_diameter));
-                ui.label(format!("Usable Length: {:.2} mm", self.usable_length));
+            // Create a unique ID for each grid based on the RotatingTool's properties
+            let grid_id = egui::Id::new(format!("rotating_tool_grid_{}", self.uuid));
 
-                match &self.category {
-                    RotatingToolCategory::Empty => {}
-                    RotatingToolCategory::BallNoseMill => {
-                        ui.label("Type: Ball Nose Mill");
+            egui::Grid::new(grid_id)
+                .num_columns(2)
+                .min_col_width(LIBRARY_COLUMN_WIDTH)
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Category:");
+                    ui.label(format!("{}", self.category));
+                    ui.end_row();
+
+                    ui.label("Cutting Diameter:");
+                    ui.label(format!("{:.2} mm", self.cutting_diameter));
+                    ui.end_row();
+
+                    ui.label("Usable Length:");
+                    ui.label(format!("{:.2} mm", self.usable_length));
+                    ui.end_row();
+
+                    match &self.category {
+                        RotatingToolCategory::Empty => {}
+                        RotatingToolCategory::BallNoseMill => {
+                            ui.label("Type:");
+                            ui.label("Ball Nose Mill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::BoringTool => {
+                            ui.label("Type:");
+                            ui.label("Boring Tool");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::ChamferMill => {
+                            ui.label("Type:");
+                            ui.label("Chamfer Mill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::DoveTailCutter => {
+                            ui.label("Type:");
+                            ui.label("Dove Tail Cutter");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::DrillBit => {
+                            ui.label("Type:");
+                            ui.label("Drill Bit");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::EndMill => {
+                            ui.label("Type:");
+                            ui.label("End Mill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::FaceMill => {
+                            ui.label("Type:");
+                            ui.label("Face Mill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::Reamer => {
+                            ui.label("Type:");
+                            ui.label("Reamer");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::SlotDrill => {
+                            ui.label("Type:");
+                            ui.label("Slot Drill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::ThreadMill => {
+                            ui.label("Type:");
+                            ui.label("Thread Mill");
+                            ui.end_row();
+                        }
+                        RotatingToolCategory::TSlotCutter => {
+                            ui.label("Type:");
+                            ui.label("T-Slot Cutter");
+                            ui.end_row();
+                        }
                     }
-                    RotatingToolCategory::BoringTool => {
-                        ui.label("Type: Boring Tool");
-                    }
-                    RotatingToolCategory::ChamferMill => {
-                        ui.label("Type: Chamfer Mill");
-                    }
-                    RotatingToolCategory::DoveTailCutter => {
-                        ui.label("Type: Dove Tail Cutter");
-                    }
-                    RotatingToolCategory::DrillBit => {
-                        ui.label("Type: Drill Bit");
-                    }
-                    RotatingToolCategory::EndMill => {
-                        ui.label("Type: End Mill");
-                    }
-                    RotatingToolCategory::FaceMill => {
-                        ui.label("Type: Face Mill");
-                    }
-                    RotatingToolCategory::Reamer => {
-                        ui.label("Type: Reamer");
-                    }
-                    RotatingToolCategory::SlotDrill => {
-                        ui.label("Type: Slot Drill");
-                    }
-                    RotatingToolCategory::ThreadMill => {
-                        ui.label("Type: Thread Mill");
-                    }
-                    RotatingToolCategory::TSlotCutter => {
-                        ui.label("Type: T-Slot Cutter");
-                    }
-                }
-            });
+                });
         });
 
         // Add hover effect for all cases
@@ -181,40 +240,68 @@ impl UiDisplay for RotatingTool {
         });
     }
 }
-
 impl UiDisplay for TurningTool {
     fn display(&self, ui: &mut egui::Ui) {
         let response = ui.group(|ui| {
-            ui.vertical(|ui| {
-                ui.label(format!("Category: {}", self.category));
-                ui.label(format!("Insert Type: {}", self.insert_type));
-                ui.label(format!("Handedness: {}", self.handedness));
+            // Create a unique ID for each grid based on the TurningTool's properties
+            let grid_id = egui::Id::new(format!("turning_tool_grid_{}", self.uuid));
 
-                match &self.category {
-                    TurningToolCategory::Empty => {}
-                    TurningToolCategory::InternalTurningTool => {
-                        ui.label("Type: Internal Turning Tool");
+            egui::Grid::new(grid_id)
+                .num_columns(2)
+                .min_col_width(LIBRARY_COLUMN_WIDTH)
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Category:");
+                    ui.label(format!("{}", self.category));
+                    ui.end_row();
+
+                    ui.label("Insert Type:");
+                    ui.label(format!("{}", self.insert_type));
+                    ui.end_row();
+
+                    ui.label("Handedness:");
+                    ui.label(format!("{}", self.handedness));
+                    ui.end_row();
+
+                    match &self.category {
+                        TurningToolCategory::Empty => {}
+                        TurningToolCategory::InternalTurningTool => {
+                            ui.label("Type:");
+                            ui.label("Internal Turning Tool");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::ExternalTurningTool => {
+                            ui.label("Type:");
+                            ui.label("External Turning Tool");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::FacingTool => {
+                            ui.label("Type:");
+                            ui.label("Facing Tool");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::BoringBar => {
+                            ui.label("Type:");
+                            ui.label("Boring Bar");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::ThreadingTool => {
+                            ui.label("Type:");
+                            ui.label("Threading Tool");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::GroovingPartingTool => {
+                            ui.label("Type:");
+                            ui.label("Grooving/Parting Tool");
+                            ui.end_row();
+                        }
+                        TurningToolCategory::FormTool => {
+                            ui.label("Type:");
+                            ui.label("Form Tool");
+                            ui.end_row();
+                        }
                     }
-                    TurningToolCategory::ExternalTurningTool => {
-                        ui.label("Type: External Turning Tool");
-                    }
-                    TurningToolCategory::FacingTool => {
-                        ui.label("Type: Facing Tool");
-                    }
-                    TurningToolCategory::BoringBar => {
-                        ui.label("Type: Boring Bar");
-                    }
-                    TurningToolCategory::ThreadingTool => {
-                        ui.label("Type: Threading Tool");
-                    }
-                    TurningToolCategory::GroovingPartingTool => {
-                        ui.label("Type: Grooving/Parting Tool");
-                    }
-                    TurningToolCategory::FormTool => {
-                        ui.label("Type: Form Tool");
-                    }
-                }
-            });
+                });
         });
 
         // Add hover effect for all cases
@@ -390,6 +477,7 @@ impl GetDegree for TurningTool {
 // Second highest level tool
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RotatingTool {
+    pub uuid: String,
     pub category: RotatingToolCategory,
     pub cutting_diameter: f32,
     pub connection_diameter: f32,
@@ -406,6 +494,7 @@ pub struct RotatingTool {
 impl Default for RotatingTool {
     fn default() -> Self {
         Self {
+            uuid: Uuid::new_v4().to_string(),
             category: RotatingToolCategory::Empty,
             cutting_diameter: 1.0,
             connection_diameter: 5.0,
@@ -423,6 +512,7 @@ impl Default for RotatingTool {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TurningTool {
+    pub uuid: String,
     pub category: TurningToolCategory,
     pub lead_angle: f32, // DEGREE
     pub handedness: Handedness,
@@ -450,6 +540,7 @@ pub struct TurningTool {
 impl Default for TurningTool {
     fn default() -> Self {
         Self {
+            uuid: Uuid::new_v4().to_string(),
             category: TurningToolCategory::Empty,
             lead_angle: 0.0,
             handedness: Handedness::default(),

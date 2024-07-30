@@ -2,13 +2,15 @@ use std::fmt;
 
 use egui::Ui;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     custom_traits::{
-        GetHolderType, GetRotatingHolderCategory, GetSlot, GetTurningHolderCategory, SetSlot,
-        UiDisplay,
+        AddHolderCopy, DeleteHolder, GetHolderType, GetRotatingHolderCategory, GetSlot,
+        GetTurningHolderCategory, GetUuid, SetSlot, UiDisplay,
     },
     tools::tool::Handedness,
+    LIBRARY_COLUMN_WIDTH,
 };
 
 // Highest level holder
@@ -16,6 +18,79 @@ use crate::{
 pub enum Holder {
     Rotating(RotatingHolder),
     Turning(TurningHolder),
+}
+
+impl AddHolderCopy for Holder {
+    fn add_copy(&mut self) {
+        match self {
+            Holder::Rotating(x) => x.add_copy(),
+            Holder::Turning(x) => x.add_copy(),
+        }
+    }
+}
+
+impl AddHolderCopy for RotatingHolder {
+    fn add_copy(&mut self) {
+        self.duplicates = self.duplicates + 1;
+    }
+}
+
+impl AddHolderCopy for TurningHolder {
+    fn add_copy(&mut self) {
+        self.duplicates = self.duplicates + 1;
+    }
+}
+
+impl DeleteHolder for Holder {
+    fn delete_holder(&mut self) -> bool {
+        match self {
+            Holder::Rotating(x) => x.delete_holder(),
+            Holder::Turning(x) => x.delete_holder(),
+        }
+    }
+}
+
+impl DeleteHolder for RotatingHolder {
+    fn delete_holder(&mut self) -> bool {
+        if self.duplicates > 1 {
+            self.duplicates = self.duplicates - 1;
+            false
+        } else {
+            true
+        }
+    }
+}
+
+impl DeleteHolder for TurningHolder {
+    fn delete_holder(&mut self) -> bool {
+        if self.duplicates > 1 {
+            self.duplicates = self.duplicates - 1;
+            false
+        } else {
+            true
+        }
+    }
+}
+
+impl GetUuid for Holder {
+    fn get_uuid(&self) -> String {
+        match self {
+            Holder::Rotating(x) => x.get_uuid(),
+            Holder::Turning(x) => x.get_uuid(),
+        }
+    }
+}
+
+impl GetUuid for RotatingHolder {
+    fn get_uuid(&self) -> String {
+        self.uuid.to_string()
+    }
+}
+
+impl GetUuid for TurningHolder {
+    fn get_uuid(&self) -> String {
+        self.uuid.to_string()
+    }
 }
 
 impl UiDisplay for Holder {
@@ -74,39 +149,74 @@ fn rotating_hover_ui(ui: &mut Ui, rotating_holder: &RotatingHolder) {
 impl UiDisplay for RotatingHolder {
     fn display(&self, ui: &mut egui::Ui) {
         let response = ui.group(|ui| {
-            ui.vertical(|ui| {
-                ui.label(format!("Category: {}", self.category));
-                ui.label(format!("Diameter: {:.2} mm", self.diameter));
-                ui.label(format!("Length: {:.2} mm", self.length));
+            // Create a unique ID for each grid based on the RotatingHolder's properties
+            let grid_id = egui::Id::new(format!("rotating_holder_grid_{}", self.uuid));
 
-                match &self.category {
-                    RotatingHolderCategory::Empty => {}
-                    RotatingHolderCategory::Collet(subcategory) => {
-                        ui.label(format!("Collet Type: {}", subcategory));
+            egui::Grid::new(grid_id)
+                .num_columns(2)
+                .min_col_width(LIBRARY_COLUMN_WIDTH)
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Category:");
+                    ui.label(format!("{}", self.category));
+                    ui.end_row();
+
+                    ui.label("Copies:");
+                    ui.label(format!("{}", self.duplicates));
+                    ui.end_row();
+
+                    ui.label("Diameter:");
+                    ui.label(format!("{:.2} mm", self.diameter));
+                    ui.end_row();
+
+                    ui.label("Length:");
+                    ui.label(format!("{:.2} mm", self.length));
+                    ui.end_row();
+
+                    match &self.category {
+                        RotatingHolderCategory::Empty => {}
+                        RotatingHolderCategory::Collet(subcategory) => {
+                            ui.label("Collet Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::EndMill(subcategory) => {
+                            ui.label("End Mill Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::ShellMill(subcategory) => {
+                            ui.label("Shell Mill Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::ShrinkFit(subcategory) => {
+                            ui.label("Shrink Fit Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::Hydraulic(subcategory) => {
+                            ui.label("Hydraulic Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::DrillChuck(subcategory) => {
+                            ui.label("Drill Chuck Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::BoringHead(subcategory) => {
+                            ui.label("Boring Head Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        RotatingHolderCategory::Tapping(subcategory) => {
+                            ui.label("Tapping Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
                     }
-                    RotatingHolderCategory::EndMill(subcategory) => {
-                        ui.label(format!("End Mill Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::ShellMill(subcategory) => {
-                        ui.label(format!("Shell Mill Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::ShrinkFit(subcategory) => {
-                        ui.label(format!("Shrink Fit Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::Hydraulic(subcategory) => {
-                        ui.label(format!("Hydraulic Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::DrillChuck(subcategory) => {
-                        ui.label(format!("Drill Chuck Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::BoringHead(subcategory) => {
-                        ui.label(format!("Boring Head Type: {}", subcategory));
-                    }
-                    RotatingHolderCategory::Tapping(subcategory) => {
-                        ui.label(format!("Tapping Type: {}", subcategory));
-                    }
-                }
-            });
+                });
         });
 
         // Add hover effect for all cases
@@ -172,36 +282,66 @@ fn turning_hover_ui(ui: &mut Ui, turning_holder: &TurningHolder) {
 impl UiDisplay for TurningHolder {
     fn display(&self, ui: &mut egui::Ui) {
         let response = ui.group(|ui| {
-            ui.vertical(|ui| {
-                ui.label(format!("Category: {}", self.category));
-                ui.label(format!(
-                    "Shank: {:.2}x{:.2} mm",
-                    self.shank_width, self.shank_height
-                ));
-                ui.label(format!("Overall Length: {:.2} mm", self.overall_length));
+            // Create a unique ID for each grid based on the TurningHolder's properties
+            let grid_id = egui::Id::new(format!("turning_holder_grid_{}", self.uuid));
 
-                match &self.category {
-                    TurningHolderCategory::Empty => {}
-                    TurningHolderCategory::External(subcategory) => {
-                        ui.label(format!("External Type: {}", subcategory));
+            egui::Grid::new(grid_id)
+                .num_columns(2)
+                .min_col_width(LIBRARY_COLUMN_WIDTH)
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Category:");
+                    ui.label(format!("{}", self.category));
+                    ui.end_row();
+                    ui.label("Copies:");
+                    ui.label(format!("{}", self.duplicates));
+                    ui.end_row();
+
+                    ui.label("Shank:");
+                    ui.label(format!(
+                        "{:.2}x{:.2} mm",
+                        self.shank_width, self.shank_height
+                    ));
+                    ui.end_row();
+
+                    ui.label("Overall Length:");
+                    ui.label(format!("{:.2} mm", self.overall_length));
+                    ui.end_row();
+
+                    match &self.category {
+                        TurningHolderCategory::Empty => {}
+                        TurningHolderCategory::External(subcategory) => {
+                            ui.label("External Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        TurningHolderCategory::Internal(subcategory) => {
+                            ui.label("Internal Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        TurningHolderCategory::PartingGrooving(subcategory) => {
+                            ui.label("Parting/Grooving Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        TurningHolderCategory::Threading(subcategory) => {
+                            ui.label("Threading Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        TurningHolderCategory::Form(subcategory) => {
+                            ui.label("Form Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
+                        TurningHolderCategory::QuickChangePost(subcategory) => {
+                            ui.label("Quick Change Post Type:");
+                            ui.label(format!("{}", subcategory));
+                            ui.end_row();
+                        }
                     }
-                    TurningHolderCategory::Internal(subcategory) => {
-                        ui.label(format!("Internal Type: {}", subcategory));
-                    }
-                    TurningHolderCategory::PartingGrooving(subcategory) => {
-                        ui.label(format!("Parting/Grooving Type: {}", subcategory));
-                    }
-                    TurningHolderCategory::Threading(subcategory) => {
-                        ui.label(format!("Threading Type: {}", subcategory));
-                    }
-                    TurningHolderCategory::Form(subcategory) => {
-                        ui.label(format!("Form Type: {}", subcategory));
-                    }
-                    TurningHolderCategory::QuickChangePost(subcategory) => {
-                        ui.label(format!("Quick Change Post Type: {}", subcategory));
-                    }
-                }
-            });
+                });
         });
 
         // Add hover effect for all cases
@@ -330,6 +470,8 @@ impl GetTurningHolderCategory for TurningHolder {
 // Second highest level holder
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RotatingHolder {
+    pub uuid: String,
+    pub duplicates: usize,
     pub category: RotatingHolderCategory,
     pub diameter: f32,
     pub length: f32,
@@ -351,6 +493,8 @@ pub struct RotatingHolder {
 impl Default for RotatingHolder {
     fn default() -> Self {
         Self {
+            uuid: Uuid::new_v4().to_string(),
+            duplicates: 1,
             category: RotatingHolderCategory::Empty,
             diameter: 1.0,
             length: 1.0,
@@ -372,6 +516,8 @@ impl Default for RotatingHolder {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TurningHolder {
+    pub uuid: String,
+    pub duplicates: usize,
     pub category: TurningHolderCategory,
     pub degree: f32,
     pub shank_height: f32,
@@ -396,6 +542,8 @@ pub struct TurningHolder {
 impl Default for TurningHolder {
     fn default() -> Self {
         Self {
+            uuid: Uuid::new_v4().to_string(),
+            duplicates: 1,
             category: TurningHolderCategory::Empty,
             degree: 15.0,
             shank_height: 10.0,
@@ -465,7 +613,6 @@ impl fmt::Display for TurningHolderCategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ColletSubCategory {
     #[default]
-    Empty,
     ER,
     TG,
     OZ,
@@ -474,7 +621,6 @@ pub enum ColletSubCategory {
 impl fmt::Display for ColletSubCategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ColletSubCategory::Empty => write!(f, "Empty"),
             ColletSubCategory::ER => write!(f, "ER"),
             ColletSubCategory::TG => write!(f, "TG"),
             ColletSubCategory::OZ => write!(f, "OZ"),
@@ -485,7 +631,6 @@ impl fmt::Display for ColletSubCategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum EndMillSubcategory {
     #[default]
-    Empty,
     WeldonFlat,
     MillingChuck,
 }
@@ -493,7 +638,6 @@ pub enum EndMillSubcategory {
 impl fmt::Display for EndMillSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            EndMillSubcategory::Empty => write!(f, "Empty"),
             EndMillSubcategory::WeldonFlat => write!(f, "Weldon Flat"),
             EndMillSubcategory::MillingChuck => write!(f, "Milling Chuck"),
         }
@@ -503,13 +647,13 @@ impl fmt::Display for EndMillSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ShellMillSubcategory {
     #[default]
-    Empty,
+    ShellMill,
 }
 
 impl fmt::Display for ShellMillSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ShellMillSubcategory::Empty => write!(f, "Empty"),
+            ShellMillSubcategory::ShellMill => write!(f, "ShellMill"),
         }
     }
 }
@@ -517,13 +661,13 @@ impl fmt::Display for ShellMillSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ShrinkFitSubcategory {
     #[default]
-    Empty,
+    ShrinkFit,
 }
 
 impl fmt::Display for ShrinkFitSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ShrinkFitSubcategory::Empty => write!(f, "Empty"),
+            ShrinkFitSubcategory::ShrinkFit => write!(f, "ShrinkFit"),
         }
     }
 }
@@ -531,13 +675,13 @@ impl fmt::Display for ShrinkFitSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum HydraulicSubcategory {
     #[default]
-    Empty,
+    Hydraulic,
 }
 
 impl fmt::Display for HydraulicSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            HydraulicSubcategory::Empty => write!(f, "Empty"),
+            HydraulicSubcategory::Hydraulic => write!(f, "Hydraulic"),
         }
     }
 }
@@ -545,20 +689,19 @@ impl fmt::Display for HydraulicSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum DrillChuckSubcategory {
     #[default]
-    Empty,
+    DrillChuck,
 }
 
 impl fmt::Display for DrillChuckSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            DrillChuckSubcategory::Empty => write!(f, "Empty"),
+            DrillChuckSubcategory::DrillChuck => write!(f, "Drill Chuck"),
         }
     }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum BoringHeadSubcategory {
     #[default]
-    Empty,
     Adjustable,
     MicroAdjustable,
 }
@@ -566,7 +709,6 @@ pub enum BoringHeadSubcategory {
 impl fmt::Display for BoringHeadSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BoringHeadSubcategory::Empty => write!(f, "Empty"),
             BoringHeadSubcategory::Adjustable => write!(f, "Adjustable"),
             BoringHeadSubcategory::MicroAdjustable => write!(f, "Micro Adjustable"),
         }
@@ -575,7 +717,6 @@ impl fmt::Display for BoringHeadSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum TappingSubcategory {
     #[default]
-    Empty,
     TensionCompression,
     Rigid,
 }
@@ -583,7 +724,6 @@ pub enum TappingSubcategory {
 impl fmt::Display for TappingSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TappingSubcategory::Empty => write!(f, "Empty"),
             TappingSubcategory::TensionCompression => write!(f, "Tension Compression"),
             TappingSubcategory::Rigid => write!(f, "Rigid"),
         }
@@ -606,7 +746,6 @@ pub enum TurningHolderCategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ExternalSubcategory {
     #[default]
-    Empty,
     RightHand,
     LeftHand,
     Neutral,
@@ -615,7 +754,6 @@ pub enum ExternalSubcategory {
 impl fmt::Display for ExternalSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ExternalSubcategory::Empty => write!(f, "Empty"),
             ExternalSubcategory::RightHand => write!(f, "Right Hand"),
             ExternalSubcategory::LeftHand => write!(f, "Left Hand"),
             ExternalSubcategory::Neutral => write!(f, "Neutral"),
@@ -626,7 +764,6 @@ impl fmt::Display for ExternalSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum InternalSubcategory {
     #[default]
-    Empty,
     BoringBar,
     InternalThreading,
 }
@@ -634,7 +771,6 @@ pub enum InternalSubcategory {
 impl fmt::Display for InternalSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            InternalSubcategory::Empty => write!(f, "Empty"),
             InternalSubcategory::BoringBar => write!(f, "Boring Bar"),
             InternalSubcategory::InternalThreading => write!(f, "Internal Threading"),
         }
@@ -643,7 +779,6 @@ impl fmt::Display for InternalSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum PartingGroovingSubcategory {
     #[default]
-    Empty,
     BladeType,
     CartridgeType,
 }
@@ -651,7 +786,6 @@ pub enum PartingGroovingSubcategory {
 impl fmt::Display for PartingGroovingSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PartingGroovingSubcategory::Empty => write!(f, "Empty"),
             PartingGroovingSubcategory::BladeType => write!(f, "Blade Type"),
             PartingGroovingSubcategory::CartridgeType => write!(f, "Cartridge Type"),
         }
@@ -660,7 +794,6 @@ impl fmt::Display for PartingGroovingSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum ThreadingSubcategory {
     #[default]
-    Empty,
     External,
     Internal,
 }
@@ -668,7 +801,6 @@ pub enum ThreadingSubcategory {
 impl fmt::Display for ThreadingSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ThreadingSubcategory::Empty => write!(f, "Empty"),
             ThreadingSubcategory::External => write!(f, "External"),
             ThreadingSubcategory::Internal => write!(f, "Internal"),
         }
@@ -677,27 +809,25 @@ impl fmt::Display for ThreadingSubcategory {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum FormSubcategory {
     #[default]
-    Empty,
+    Form,
 }
 
 impl fmt::Display for FormSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            FormSubcategory::Empty => write!(f, "Empty"),
+            FormSubcategory::Form => write!(f, "Form"),
         }
     }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 pub enum QuickChangePostSubcategory {
     #[default]
-    Empty,
     QCTP,
 }
 
 impl fmt::Display for QuickChangePostSubcategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            QuickChangePostSubcategory::Empty => write!(f, "Empty"),
             QuickChangePostSubcategory::QCTP => write!(f, "QCTP"),
         }
     }

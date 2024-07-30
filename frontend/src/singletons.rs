@@ -35,6 +35,8 @@ pub struct Singletons {
     pub library_view_state: LibraryViewState,
     pub sort_state: SortState,
     pub filter_state: FilterState,
+    pub library_display_holders: Vec<Holder>,
+    pub libaray_display_tools: Vec<Tool>,
 }
 
 impl Singletons {

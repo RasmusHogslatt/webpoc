@@ -336,7 +336,7 @@ impl eframe::App for Application {
                             ));
                             ui.label(format!(
                                 "Total holders: {:?}",
-                                self.user.user_data.library.holder.len()
+                                self.user.user_data.library.holders.len()
                             ));
                             LibraryWidget::new(&mut self.user, &mut self.singletons).ui(ui);
                             // TODO

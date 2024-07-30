@@ -17,6 +17,12 @@ serde_json = "1"
 reqwest = { version = "0.11", features = ["json"] }
 shared = { path = "../shared" }
 getrandom = { version = "0.2", features = ["js"] }
+uuid = { version = "1.10.0", features = [
+    "v4",
+    "fast-rng",
+    "macro-diagnostics",
+] }
+
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.10"

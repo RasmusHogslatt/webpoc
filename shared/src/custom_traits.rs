@@ -56,3 +56,16 @@ pub trait GetToolType {
 pub trait UiDisplay {
     fn display(&self, ui: &mut Ui);
 }
+
+// Returns true if holder should be entirely deleted
+pub trait DeleteHolder {
+    fn delete_holder(&mut self) -> bool;
+}
+
+pub trait GetUuid {
+    fn get_uuid(&self) -> String;
+}
+
+pub trait AddHolderCopy {
+    fn add_copy(&mut self);
+}

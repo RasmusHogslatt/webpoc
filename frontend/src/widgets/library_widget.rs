@@ -3,18 +3,7 @@ use crate::{
     singletons::Singletons,
 };
 use egui::{ComboBox, Response, Ui, Widget};
-use shared::{
-    custom_traits::*,
-    holders::holder::{
-        self, BoringHeadSubcategory, ColletSubCategory, DrillChuckSubcategory, EndMillSubcategory,
-        ExternalSubcategory, FormSubcategory, HydraulicSubcategory, InternalSubcategory,
-        PartingGroovingSubcategory, QuickChangePostSubcategory, RotatingHolderCategory,
-        ShellMillSubcategory, ShrinkFitSubcategory, TappingSubcategory, ThreadingSubcategory,
-        TurningHolderCategory,
-    },
-    library::Library,
-    tools::tool::{RotatingToolCategory, Tool, TurningToolCategory},
-};
+use shared::{custom_traits::*, holders, library::Library, tools::tool::Tool};
 use shared::{holders::holder::Holder, User};
 
 pub struct LibraryWidget<'a> {
@@ -68,31 +57,6 @@ impl<'a> LibraryWidget<'a> {
             }),
         }
     }
-
-    // fn display_items<T>(&self, ui: &mut Ui, items: &mut Vec<T>, is_tool: bool)
-    // where
-    //     T: GetRotatingToolCategory
-    //         + GetTurningToolCategory
-    //         + GetDiameter
-    //         + GetDegree
-    //         + std::fmt::Debug,
-    // {
-    //     self.sort_and_filter_items(items);
-
-    //     let mut indices_to_remove = Vec::new();
-
-    //     egui::Grid::new("items_table")
-    //         .num_columns(5)
-    //         .striped(true)
-    //         .show(ui, |ui| {
-    //             // ... rest of the function remains the same ...
-    //         });
-
-    //     // Remove items after the loop to avoid iterator invalidation
-    //     for &index in indices_to_remove.iter().rev() {
-    //         items.remove(index);
-    //     }
-    // }
 }
 
 impl<'a> Widget for LibraryWidget<'a> {
@@ -112,26 +76,91 @@ impl<'a> Widget for LibraryWidget<'a> {
             display_main_filter_options(ui, filter_state, &view_state);
 
             // Do some filtering and sorting to generate a new vector that should be displayed
+            self.singletons.libaray_display_tools = filter_tools(library, filter_state);
+            self.singletons.library_display_holders = filter_holders(library, filter_state);
         });
+
+        let mut delete_tool_uuid: Option<String> = None;
+        let mut delete_holder_uuid: Option<String> = None;
+        let mut add_holder_copy_uuid: Option<String> = None;
 
         match view_state {
             LibraryViewState::Tool => {
-                // self.display_items(ui, &mut self.user.user_data.library.tools, true)
                 egui::Grid::new("tools").num_columns(1).show(ui, |ui| {
-                    for tool in library.tools.iter() {
+                    for tool in self.singletons.libaray_display_tools.iter() {
                         tool.display(ui);
+                        if ui.button("Delete").clicked() {
+                            delete_tool_uuid = Some(tool.get_uuid());
+                        }
                         ui.end_row();
                     }
                 });
             }
             LibraryViewState::Holder => {
-                // self.display_items(ui, &mut self.user.user_data.library.holder, false)
                 egui::Grid::new("holders").num_columns(1).show(ui, |ui| {
-                    for holder in library.holder.iter() {
+                    for holder in self.singletons.library_display_holders.iter_mut() {
                         holder.display(ui);
+
+                        if ui.button("Delete").clicked() {
+                            delete_holder_uuid = Some(holder.get_uuid());
+                        }
+
+                        if ui.button("Add Copy").clicked() {
+                            add_holder_copy_uuid = Some(holder.get_uuid());
+                        }
+
                         ui.end_row();
                     }
                 });
+            }
+        }
+
+        if let Some(uuid) = delete_tool_uuid {
+            if let Some(tool) = self
+                .user
+                .user_data
+                .library
+                .tools
+                .iter_mut()
+                .find(|x| x.get_uuid() == uuid)
+            {
+                self.user
+                    .user_data
+                    .library
+                    .tools
+                    .retain(|x| x.get_uuid() != uuid);
+            }
+        }
+
+        if let Some(uuid) = add_holder_copy_uuid {
+            if let Some(holder) = self
+                .user
+                .user_data
+                .library
+                .holders
+                .iter_mut()
+                .find(|item| item.get_uuid() == uuid)
+            {
+                holder.add_copy();
+            }
+        }
+
+        if let Some(uuid) = delete_holder_uuid {
+            if let Some(holder) = self
+                .user
+                .user_data
+                .library
+                .holders
+                .iter_mut()
+                .find(|item| item.get_uuid() == uuid)
+            {
+                if holder.delete_holder() {
+                    self.user
+                        .user_data
+                        .library
+                        .holders
+                        .retain(|item| item.get_uuid() != uuid);
+                }
             }
         }
 
@@ -149,6 +178,7 @@ fn display_main_filter_options(
         .selected_text(format!("{:?}", filter_state))
         .show_ui(ui, |ui| match view_state {
             LibraryViewState::Tool => {
+                ui.selectable_value(filter_state, FilterState::ShowAll, "Show All");
                 ui.selectable_value(
                     filter_state,
                     FilterState::RotatingToolCategory,
@@ -161,6 +191,7 @@ fn display_main_filter_options(
                 );
             }
             LibraryViewState::Holder => {
+                ui.selectable_value(filter_state, FilterState::ShowAll, "Show All");
                 ui.selectable_value(
                     filter_state,
                     FilterState::RotatingHolderCategory,
@@ -187,38 +218,47 @@ fn display_sort_options(ui: &mut Ui, sort_state: &mut SortState) {
 
 fn filter_holders(library: &Library, filter_state: &FilterState) -> Vec<Holder> {
     match filter_state {
-        _ => vec![],
+        FilterState::ShowAll => library.holders.clone(),
         FilterState::RotatingHolderCategory => library
-            .holder
+            .holders
             .iter()
             .filter(|holder| holder.is_rotating())
             .cloned()
             .collect(),
 
         FilterState::TurningHolderCategory => library
-            .holder
+            .holders
             .iter()
             .filter(|holder| holder.is_turning())
             .cloned()
             .collect(),
+        FilterState::RotatingToolCategory => {
+            vec![]
+        }
+        FilterState::TurningToolCategory => {
+            vec![]
+        }
     }
 }
 fn filter_tools(library: &Library, filter_state: &FilterState) -> Vec<Tool> {
     match filter_state {
-        _ => vec![],
         FilterState::RotatingToolCategory => library
             .tools
             .iter()
             .filter(|tool| tool.is_rotating())
             .cloned()
             .collect(),
-
+        FilterState::RotatingHolderCategory => {
+            vec![]
+        }
         FilterState::TurningToolCategory => library
             .tools
             .iter()
             .filter(|tool| tool.is_turning())
             .cloned()
             .collect(),
+        FilterState::TurningHolderCategory => vec![],
+        FilterState::ShowAll => library.tools.clone(),
     }
 }
 

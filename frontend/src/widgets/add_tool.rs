@@ -13,6 +13,7 @@ use shared::{
     },
     User,
 };
+use uuid::Uuid;
 
 pub struct AddToolWindow<'a> {
     user: &'a mut User,
@@ -271,6 +272,8 @@ impl<'a> AddToolWindow<'a> {
                             ToolTypeSelection::Rotating => {
                                 let mut tool = self.singletons.rotating_tool.clone();
                                 let index = self.user.user_data.library.tools.len();
+                                let uuid = Uuid::new_v4().to_string();
+                                tool.uuid = uuid;
                                 tool.set_library_slot(Some(index));
                                 self.user
                                     .user_data
@@ -281,6 +284,8 @@ impl<'a> AddToolWindow<'a> {
                             ToolTypeSelection::Turning => {
                                 let mut tool = self.singletons.turning_tool.clone();
                                 let index = self.user.user_data.library.tools.len();
+                                let uuid = Uuid::new_v4().to_string();
+                                tool.uuid = uuid;
                                 tool.set_library_slot(Some(index));
                                 self.user
                                     .user_data

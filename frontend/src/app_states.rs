@@ -35,6 +35,7 @@ pub enum SortState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum FilterState {
     #[default]
+    ShowAll,
     RotatingToolCategory,
     RotatingHolderCategory,
     TurningToolCategory,
