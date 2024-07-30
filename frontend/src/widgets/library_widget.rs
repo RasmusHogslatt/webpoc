@@ -3,7 +3,7 @@ use crate::{
     singletons::Singletons,
 };
 use egui::{ComboBox, Response, Ui, Widget};
-use shared::{custom_traits::*, holders, library::Library, tools::tool::Tool};
+use shared::{custom_traits::*, library::Library, tools::tool::Tool};
 use shared::{holders::holder::Holder, User};
 
 pub struct LibraryWidget<'a> {
@@ -14,48 +14,6 @@ pub struct LibraryWidget<'a> {
 impl<'a> LibraryWidget<'a> {
     pub fn new(user: &'a mut User, singletons: &'a mut Singletons) -> Self {
         Self { user, singletons }
-    }
-
-    fn sort_and_filter_items<T>(&self, items: &mut Vec<T>)
-    where
-        T: GetRotatingToolCategory + GetTurningToolCategory + GetDiameter + GetDegree,
-    {
-        // Filter the items
-        items.retain(|item| {
-            match (
-                self.singletons.library_view_state,
-                self.singletons.filter_state,
-            ) {
-                (LibraryViewState::Tool, FilterState::RotatingToolCategory) => {
-                    matches!(item.get_rotating_tool_category(), Some(_))
-                }
-                (LibraryViewState::Tool, FilterState::TurningToolCategory) => {
-                    matches!(item.get_turning_tool_category(), Some(_))
-                }
-                (LibraryViewState::Holder, FilterState::RotatingHolderCategory) => {
-                    matches!(item.get_rotating_tool_category(), Some(_))
-                }
-                (LibraryViewState::Holder, FilterState::TurningHolderCategory) => {
-                    matches!(item.get_turning_tool_category(), Some(_))
-                }
-                _ => false,
-            }
-        });
-
-        // Sort the filtered items
-        match self.singletons.sort_state {
-            SortState::Index => {} // Already sorted by index
-            SortState::Diameter => items.sort_by(|a, b| {
-                a.get_diameter()
-                    .partial_cmp(&b.get_diameter())
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            }),
-            SortState::Degree => items.sort_by(|a, b| {
-                a.get_degree()
-                    .partial_cmp(&b.get_degree())
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            }),
-        }
     }
 }
 
@@ -116,20 +74,11 @@ impl<'a> Widget for LibraryWidget<'a> {
         }
 
         if let Some(uuid) = delete_tool_uuid {
-            if let Some(tool) = self
-                .user
+            self.user
                 .user_data
                 .library
                 .tools
-                .iter_mut()
-                .find(|x| x.get_uuid() == uuid)
-            {
-                self.user
-                    .user_data
-                    .library
-                    .tools
-                    .retain(|x| x.get_uuid() != uuid);
-            }
+                .retain(|x| x.get_uuid() != uuid);
         }
 
         if let Some(uuid) = add_holder_copy_uuid {

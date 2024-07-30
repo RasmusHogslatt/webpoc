@@ -1,12 +1,10 @@
 use serde::{Deserialize, Serialize};
 use shared::{
     description::Description,
-    holders::holder::{
-        Holder, RotatingHolder, RotatingHolderCategory, TurningHolder, TurningHolderCategory,
-    },
+    holders::holder::{Holder, RotatingHolder, TurningHolder},
     machine::Machine,
     magazine::Magazine,
-    tools::tool::{RotatingTool, RotatingToolCategory, Tool, TurningTool, TurningToolCategory},
+    tools::tool::{RotatingTool, Tool, TurningTool},
 };
 
 use crate::{

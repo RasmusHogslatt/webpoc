@@ -37,36 +37,35 @@ impl<'a> EditMachineWindow<'a> {
         Window::new("Edit Machine").open(open).show(ctx, |ui| {
             ui.heading("Edit Machine");
             let mut changed = false;
-            if let machine_index = self.user.user_data.selections.selected_machine.unwrap() {
-                if let Some(machine) = self.user.user_data.machines.get_mut(machine_index) {
-                    ui.horizontal(|ui| {
-                        ui.label("Name:");
-                        changed = ui.text_edit_singleline(&mut machine.name).changed();
-                    });
-                    ui.horizontal(|ui| {
-                        ui.label("Manufacturer:");
-                        changed = ui.text_edit_singleline(&mut machine.manufacturer).changed();
-                    });
-                    ui.horizontal(|ui| {
-                        ui.label("Model:");
-                        changed = ui.text_edit_singleline(&mut machine.model).changed();
-                    });
-                    ui.horizontal(|ui| {
-                        ui.label("Description:");
-                        changed = ui
-                            .text_edit_multiline(&mut machine.description.text)
-                            .changed();
-                    });
-                    ui.label(format!("Number of magazines: {}", machine.magazines.len()));
-                    if machine.magazines.len() > 0 {
-                        ui.label(format!(
-                            "Magazine capacity: {}",
-                            machine.magazines[0].capacity
-                        ));
-                    }
-                    if changed {
-                        self.singletons.should_save_user_data = true;
-                    }
+            let machine_index = self.user.user_data.selections.selected_machine.unwrap();
+            if let Some(machine) = self.user.user_data.machines.get_mut(machine_index) {
+                ui.horizontal(|ui| {
+                    ui.label("Name:");
+                    changed = ui.text_edit_singleline(&mut machine.name).changed();
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Manufacturer:");
+                    changed = ui.text_edit_singleline(&mut machine.manufacturer).changed();
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Model:");
+                    changed = ui.text_edit_singleline(&mut machine.model).changed();
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Description:");
+                    changed = ui
+                        .text_edit_multiline(&mut machine.description.text)
+                        .changed();
+                });
+                ui.label(format!("Number of magazines: {}", machine.magazines.len()));
+                if machine.magazines.len() > 0 {
+                    ui.label(format!(
+                        "Magazine capacity: {}",
+                        machine.magazines[0].capacity
+                    ));
+                }
+                if changed {
+                    self.singletons.should_save_user_data = true;
                 }
             }
             if ui.button("Apply").clicked() {

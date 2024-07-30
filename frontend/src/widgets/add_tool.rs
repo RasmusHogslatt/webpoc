@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 use crate::{
     app_states::{AppState, ToolTypeSelection, WidgetState},
     singletons::Singletons,
@@ -7,7 +5,6 @@ use crate::{
 use egui::{ComboBox, Context, Ui, Window};
 use shared::{
     custom_traits::SetSlot,
-    magazine::Magazine,
     tools::tool::{
         Handedness, RotatingTool, RotatingToolCategory, TurningTool, TurningToolCategory,
     },

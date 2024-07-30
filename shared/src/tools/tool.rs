@@ -1,17 +1,12 @@
 use core::fmt;
 use egui::Ui;
 use enum_iterator::Sequence;
-use std::{default, fmt::write};
 use uuid::Uuid;
 
 use crate::{
     custom_traits::{
         GetDegree, GetDiameter, GetRotatingToolCategory, GetSlot, GetToolType,
         GetTurningToolCategory, GetUuid, SetSlot, UiDisplay,
-    },
-    holders::{
-        self,
-        holder::{RotatingHolder, TurningHolder},
     },
     LIBRARY_COLUMN_WIDTH,
 };

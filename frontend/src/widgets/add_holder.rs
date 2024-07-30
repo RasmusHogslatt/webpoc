@@ -1,7 +1,5 @@
-use std::fmt::Debug;
-
 use crate::{
-    app_states::{AppState, HolderTypeSelection, ToolTypeSelection, WidgetState},
+    app_states::{AppState, HolderTypeSelection, WidgetState},
     singletons::Singletons,
 };
 use egui::{ComboBox, Context, Ui, Window};
@@ -9,15 +7,12 @@ use shared::{
     custom_traits::SetSlot,
     holders::holder::{
         BoringHeadSubcategory, ColletSubCategory, DrillChuckSubcategory, EndMillSubcategory,
-        ExternalSubcategory, FormSubcategory, Holder, HydraulicSubcategory, InternalSubcategory,
+        ExternalSubcategory, FormSubcategory, HydraulicSubcategory, InternalSubcategory,
         PartingGroovingSubcategory, QuickChangePostSubcategory, RotatingHolder,
         RotatingHolderCategory, ShellMillSubcategory, ShrinkFitSubcategory, TappingSubcategory,
         ThreadingSubcategory, TurningHolder, TurningHolderCategory,
     },
-    magazine::Magazine,
-    tools::tool::{
-        Handedness, RotatingTool, RotatingToolCategory, TurningTool, TurningToolCategory,
-    },
+    tools::tool::Handedness,
     User,
 };
 use uuid::Uuid;

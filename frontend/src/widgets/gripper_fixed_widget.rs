@@ -1,6 +1,5 @@
 use egui::{
-    color_picker::show_color, Align2, CollapsingHeader, Color32, Context, FontId, Frame, Painter,
-    Pos2, Rect, Separator, Slider, Stroke, Ui, Vec2, Window,
+    Align2, Color32, Context, FontId, Frame, Painter, Pos2, Rect, Slider, Stroke, Ui, Vec2, Window,
 };
 use serde::{Deserialize, Serialize};
 
