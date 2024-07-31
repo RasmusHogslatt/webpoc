@@ -33,7 +33,7 @@ impl<'a> Widget for LibraryWidget<'a> {
             display_sort_options(ui, sort_state);
             display_main_filter_options(ui, filter_state, &view_state);
 
-            // Do some filtering and sorting to generate a new vector that should be displayed
+            // Do some filtering and sorting to generate a vector that should be displayed
             self.singletons.libaray_display_tools = filter_tools(library, filter_state);
             self.singletons.library_display_holders = filter_holders(library, filter_state);
         });
