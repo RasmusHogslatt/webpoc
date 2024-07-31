@@ -3,12 +3,9 @@ use egui::Ui;
 use enum_iterator::Sequence;
 use uuid::Uuid;
 
-use crate::{
-    custom_traits::{
-        GetDegree, GetDiameter, GetRotatingToolCategory, GetSlot, GetToolType,
-        GetTurningToolCategory, GetUuid, SetSlot, UiDisplay,
-    },
-    LIBRARY_COLUMN_WIDTH,
+use crate::custom_traits::{
+    GetDegree, GetDiameter, GetRotatingToolCategory, GetToolType, GetTurningToolCategory, GetUuid,
+    UiDisplay,
 };
 use serde::{Deserialize, Serialize};
 
@@ -153,7 +150,6 @@ impl UiDisplay for RotatingTool {
 
             egui::Grid::new(grid_id)
                 .num_columns(2)
-                .min_col_width(LIBRARY_COLUMN_WIDTH)
                 .striped(true)
                 .show(ui, |ui| {
                     ui.label("Category:");
@@ -243,7 +239,6 @@ impl UiDisplay for TurningTool {
 
             egui::Grid::new(grid_id)
                 .num_columns(2)
-                .min_col_width(LIBRARY_COLUMN_WIDTH)
                 .striped(true)
                 .show(ui, |ui| {
                     ui.label("Category:");
@@ -328,72 +323,6 @@ impl GetToolType for Tool {
             Tool::Rotating(_) => false,
             Tool::Turning(_) => true,
         }
-    }
-}
-
-impl GetSlot for Tool {
-    fn get_library_slot(&self) -> Option<usize> {
-        match self {
-            Tool::Rotating(item) => item.get_library_slot(),
-            Tool::Turning(item) => item.get_library_slot(),
-        }
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        match self {
-            Tool::Rotating(item) => item.get_machine_slot(),
-            Tool::Turning(item) => item.get_machine_slot(),
-        }
-    }
-}
-
-impl GetSlot for RotatingTool {
-    fn get_library_slot(&self) -> Option<usize> {
-        self.library_slot
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        self.machine_slot
-    }
-}
-
-impl GetSlot for TurningTool {
-    fn get_library_slot(&self) -> Option<usize> {
-        self.library_slot
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        self.machine_slot
-    }
-}
-
-impl SetSlot for Tool {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        match self {
-            Tool::Rotating(item) => item.set_library_slot(index),
-            Tool::Turning(item) => item.set_library_slot(index),
-        }
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        match self {
-            Tool::Rotating(item) => item.set_machine_slot(index),
-            Tool::Turning(item) => item.set_machine_slot(index),
-        }
-    }
-}
-
-impl SetSlot for RotatingTool {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        self.library_slot = index;
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        self.machine_slot = index;
-    }
-}
-
-impl SetSlot for TurningTool {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        self.library_slot = index;
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        self.machine_slot = index;
     }
 }
 
@@ -482,8 +411,6 @@ pub struct RotatingTool {
     pub weight_of_tool: f32,
     pub max_rpm: u32,          // RPM
     pub coolant_pressure: u32, // BAR
-    pub machine_slot: Option<usize>,
-    pub library_slot: Option<usize>,
 }
 
 impl Default for RotatingTool {
@@ -499,8 +426,6 @@ impl Default for RotatingTool {
             weight_of_tool: 10.0,
             max_rpm: 50000,
             coolant_pressure: 20,
-            machine_slot: None,
-            library_slot: None,
         }
     }
 }
@@ -528,8 +453,6 @@ pub struct TurningTool {
     pub connection_diameter: f32,
     pub maximum_rpm: u32,
     pub tool_weight: f32,
-    pub machine_slot: Option<usize>,
-    pub library_slot: Option<usize>,
 }
 
 impl Default for TurningTool {
@@ -556,8 +479,6 @@ impl Default for TurningTool {
             connection_diameter: 5.0,
             maximum_rpm: 50000,
             tool_weight: 20.0, // GRAMS
-            machine_slot: None,
-            library_slot: None,
         }
     }
 }

@@ -11,15 +11,7 @@ pub enum AppState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum CentralViewState {
     #[default]
-    Library,
     Magazine,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub enum LibraryViewState {
-    #[default]
-    Tool,
-    Holder,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

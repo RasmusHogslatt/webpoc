@@ -8,9 +8,7 @@ use shared::{
 };
 
 use crate::{
-    app_states::{
-        FilterState, HolderTypeSelection, LibraryViewState, SortState, ToolTypeSelection,
-    },
+    app_states::{FilterState, HolderTypeSelection, SortState, ToolTypeSelection},
     widgets::{
         gripper_fixed_widget::GripperFixedCalculationData, gripper_widget::GripperCalculationData,
     },
@@ -30,11 +28,8 @@ pub struct Singletons {
     pub turning_holder: TurningHolder,
     pub tool_type_selection: ToolTypeSelection,
     pub holder_type_selection: HolderTypeSelection,
-    pub library_view_state: LibraryViewState,
     pub sort_state: SortState,
     pub filter_state: FilterState,
-    pub library_display_holders: Vec<Holder>,
-    pub libaray_display_tools: Vec<Tool>,
 }
 
 impl Singletons {

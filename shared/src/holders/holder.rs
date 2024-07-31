@@ -6,11 +6,10 @@ use uuid::Uuid;
 
 use crate::{
     custom_traits::{
-        AddHolderCopy, DeleteHolder, GetHolderType, GetRotatingHolderCategory, GetSlot,
-        GetTurningHolderCategory, GetUuid, SetSlot, UiDisplay,
+        AddHolderCopy, DeleteHolder, GetHolderType, GetRotatingHolderCategory,
+        GetTurningHolderCategory, GetUuid, UiDisplay,
     },
     tools::tool::Handedness,
-    LIBRARY_COLUMN_WIDTH,
 };
 
 // Highest level holder
@@ -154,7 +153,6 @@ impl UiDisplay for RotatingHolder {
 
             egui::Grid::new(grid_id)
                 .num_columns(2)
-                .min_col_width(LIBRARY_COLUMN_WIDTH)
                 .striped(true)
                 .show(ui, |ui| {
                     ui.label("Category:");
@@ -287,7 +285,6 @@ impl UiDisplay for TurningHolder {
 
             egui::Grid::new(grid_id)
                 .num_columns(2)
-                .min_col_width(LIBRARY_COLUMN_WIDTH)
                 .striped(true)
                 .show(ui, |ui| {
                     ui.label("Category:");
@@ -372,72 +369,6 @@ impl Default for Holder {
     }
 }
 
-impl GetSlot for Holder {
-    fn get_library_slot(&self) -> Option<usize> {
-        match self {
-            Holder::Rotating(item) => item.get_library_slot(),
-            Holder::Turning(item) => item.get_library_slot(),
-        }
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        match self {
-            Holder::Rotating(item) => item.get_machine_slot(),
-            Holder::Turning(item) => item.get_machine_slot(),
-        }
-    }
-}
-
-impl GetSlot for RotatingHolder {
-    fn get_library_slot(&self) -> Option<usize> {
-        self.library_slot
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        self.machine_slot
-    }
-}
-
-impl GetSlot for TurningHolder {
-    fn get_library_slot(&self) -> Option<usize> {
-        self.library_slot
-    }
-    fn get_machine_slot(&self) -> Option<usize> {
-        self.machine_slot
-    }
-}
-
-impl SetSlot for Holder {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        match self {
-            Holder::Rotating(item) => item.set_library_slot(index),
-            Holder::Turning(item) => item.set_library_slot(index),
-        }
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        match self {
-            Holder::Rotating(item) => item.set_machine_slot(index),
-            Holder::Turning(item) => item.set_machine_slot(index),
-        }
-    }
-}
-
-impl SetSlot for RotatingHolder {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        self.library_slot = index;
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        self.machine_slot = index;
-    }
-}
-
-impl SetSlot for TurningHolder {
-    fn set_library_slot(&mut self, index: Option<usize>) {
-        self.library_slot = index;
-    }
-    fn set_machine_slot(&mut self, index: Option<usize>) {
-        self.machine_slot = index;
-    }
-}
-
 impl GetRotatingHolderCategory for Holder {
     fn get_rotating_holder_category(&self) -> Option<RotatingHolderCategory> {
         match self {
@@ -486,8 +417,6 @@ pub struct RotatingHolder {
     pub weldon_flat_size: f32,                 // For EndMill (WeldonFlat)
     pub adjustable_range: (f32, f32),          // For BoringHead
     pub tension_compression_range: (f32, f32), // For Tapping (TensionCompression)
-    pub library_slot: Option<usize>,
-    pub machine_slot: Option<usize>,
 }
 
 impl Default for RotatingHolder {
@@ -508,8 +437,6 @@ impl Default for RotatingHolder {
             weldon_flat_size: 1.0,
             adjustable_range: (0.0, 1.0),
             tension_compression_range: (0.0, 1.0),
-            library_slot: None,
-            machine_slot: None,
         }
     }
 }
@@ -535,8 +462,6 @@ pub struct TurningHolder {
     pub thread_pitch_range: (f32, f32), // For Threading
     pub form_profile: String,   // For Form
     pub tool_post_size: String, // For QuickChangePost
-    pub library_slot: Option<usize>,
-    pub machine_slot: Option<usize>,
 }
 
 impl Default for TurningHolder {
@@ -560,8 +485,6 @@ impl Default for TurningHolder {
             thread_pitch_range: (0.0, 1.0),
             form_profile: "".to_string(),
             tool_post_size: "".to_string(),
-            library_slot: None,
-            machine_slot: None,
         }
     }
 }

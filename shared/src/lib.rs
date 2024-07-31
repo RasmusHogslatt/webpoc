@@ -1,5 +1,4 @@
 use egui::Color32;
-use library::Library;
 use machine::Machine;
 use selection::Selections;
 use serde::{Deserialize, Serialize};
@@ -8,7 +7,6 @@ use settings::*;
 pub mod custom_traits;
 pub mod description;
 pub mod holders;
-pub mod library;
 pub mod machine;
 pub mod magazine;
 pub mod selection;
@@ -19,7 +17,6 @@ pub mod tools;
 pub struct UserData {
     pub favorite_color: Color32,
     pub machines: Vec<Machine>,
-    pub library: Library,
     pub selections: Selections,
     pub settings: Settings,
 }

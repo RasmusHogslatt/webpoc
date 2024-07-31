@@ -105,7 +105,7 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
     pub fn show(&mut self, ctx: &Context, open: &mut bool) {
         let mut should_close = false;
 
-        Window::new("Lathe Bar Gripper")
+        Window::new("Fixed Lathe Bar Gripper")
             .open(open)
             .resizable(false)
             .default_size([800.0, 800.0])
@@ -160,43 +160,54 @@ impl<'a> LatheBarGripperFixedWindow<'a> {
 
     fn results_ui(&mut self, ui: &mut Ui) {
         let data = &self.gripper_calculation_data;
-
-        ui.label("Length per piece:");
-        ui.label(format!("{:.2} mm", data.total_length_per_piece))
-            .on_hover_ui(|ui| {
-                // Calculated as the sum of the following values:
-                ui.vertical(|ui| {
-                    ui.label(format!(
-                        "{:.2} mm (Safety margin)",
-                        data.desired_safety_margin
-                    ));
-                    ui.label(format!(
-                        "+ {:.2} mm (Gripper Extension)",
-                        data.gripper_overextension
-                    ));
-                    ui.label(format!(
-                        "+ {:.2} mm (Offset from cut)",
-                        data.margin_from_cut
-                    ));
-                    ui.label(format!("+ {:.2} mm (Cutter width)", data.cutter_width));
-                    ui.label(format!(
-                        "+ {:.2} mm (Left facing stock)",
-                        data.left_facing_stock
-                    ));
-                    ui.label(format!(
-                        "+ {:.2} mm (Workpiece length)",
-                        data.workpiece_length
-                    ));
-                    ui.separator();
-                    ui.label(format!("= {:.2} mm", data.total_length_per_piece));
-                });
+        egui::Grid::new("fixed_results_grid")
+            .num_columns(2)
+            .show(ui, |ui| {
+                ui.label("Length per piece:");
+                ui.label(format!("{:.2} mm", data.total_length_per_piece))
+                    .on_hover_ui(|ui| {
+                        egui::Grid::new("fixed_hover_results")
+                            .num_columns(1)
+                            .show(ui, |ui| {
+                                ui.label(format!(
+                                    "{:.2} mm (Safety margin)",
+                                    data.desired_safety_margin
+                                ));
+                                ui.end_row();
+                                ui.label(format!(
+                                    "+ {:.2} mm (Gripper Extension)",
+                                    data.gripper_overextension
+                                ));
+                                ui.end_row();
+                                ui.label(format!(
+                                    "+ {:.2} mm (Offset from cut)",
+                                    data.margin_from_cut
+                                ));
+                                ui.end_row();
+                                ui.label(format!("+ {:.2} mm (Cutter width)", data.cutter_width));
+                                ui.end_row();
+                                ui.label(format!(
+                                    "+ {:.2} mm (Left facing stock)",
+                                    data.left_facing_stock
+                                ));
+                                ui.end_row();
+                                ui.label(format!(
+                                    "+ {:.2} mm (Workpiece length)",
+                                    data.workpiece_length
+                                ));
+                                ui.end_row();
+                                ui.separator();
+                                ui.end_row();
+                                ui.label(format!("= {:.2} mm", data.total_length_per_piece));
+                            });
+                    });
+                ui.end_row();
+                ui.label(format!("Maximum possible nr. of pieces:"));
+                ui.label(format!("{:.0}", data.total_possible_pieces.floor()));
+                ui.end_row();
+                ui.label("Unused material:");
+                ui.label(format!("{:.2} mm", data.unused_material));
             });
-        ui.end_row();
-        ui.label(format!("Maximum possible nr. of pieces:"));
-        ui.label(format!("{:.0}", data.total_possible_pieces.floor()));
-        ui.end_row();
-        ui.label("Unused material:");
-        ui.label(format!("{:.2} mm", data.unused_material));
     }
 
     fn options_ui(&mut self, ui: &mut Ui) {

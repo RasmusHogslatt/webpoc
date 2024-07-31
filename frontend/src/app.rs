@@ -2,14 +2,12 @@ use crate::app_states::{AppState, CentralViewState, OpenWindows, WidgetState};
 #[cfg(target_arch = "wasm32")]
 use crate::database_interactions::*;
 use crate::singletons::Singletons;
-use crate::widgets::add_holder::AddHolderWindow;
 use crate::widgets::add_machine::AddMachineWindow;
-use crate::widgets::add_tool::AddToolWindow;
 use crate::widgets::delete_machine::DeleteMachineWindow;
 use crate::widgets::edit_machine::EditMachineWindow;
 use crate::widgets::gripper_fixed_widget::LatheBarGripperFixedWindow;
 use crate::widgets::gripper_widget::LatheBarGripperWindow;
-use crate::widgets::library_widget::LibraryWidget;
+use crate::widgets::settings_window::SettingsWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
 use crate::widgets::welcome::WelcomeWidget;
@@ -91,9 +89,10 @@ impl eframe::App for Application {
         }
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                ui.label(format!("App State: {:?}", self.app_state));
+                egui::widgets::global_dark_light_mode_switch(ui);
                 if ui.button("Settings").on_hover_text("Settings").clicked() {
                     self.widget_state = WidgetState::Settings;
+                    self.open_windows.settings_window_open = true;
                 }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // User sign in/up
@@ -129,28 +128,15 @@ impl eframe::App for Application {
                             self.widget_state = WidgetState::GripperFixedCalculation;
                             self.open_windows.gripper_fixed_window_open = true;
                         }
-                        ui.separator();
-                        ui.selectable_value(
-                            &mut self.central_view_state,
-                            CentralViewState::Library,
-                            "Library",
-                        );
-                        ui.selectable_value(
-                            &mut self.central_view_state,
-                            CentralViewState::Magazine,
-                            "Magazine",
-                        );
-                        ui.separator();
-                        if ui.button("Add Tool").clicked() {
-                            self.widget_state = WidgetState::AddTool;
-                            self.open_windows.add_tool_window = true;
-                        }
-                        if ui.button("Add Holder").clicked() {
-                            self.widget_state = WidgetState::AddHolder;
-                            self.open_windows.add_holder_window = true;
-                        }
 
                         /* Below adds the windows */
+                        let mut settings_window = SettingsWindow::new(
+                            &mut self.user.user_data.settings,
+                            &mut self.singletons,
+                            &mut self.widget_state,
+                        );
+                        settings_window.show(ctx, &mut self.open_windows.settings_window_open);
+
                         let mut add_machine_window = AddMachineWindow::new(
                             &mut self.user,
                             &mut self.singletons,
@@ -159,22 +145,6 @@ impl eframe::App for Application {
                         );
                         add_machine_window
                             .show(ctx, &mut self.open_windows.add_machine_window_open);
-
-                        let mut add_tool_window = AddToolWindow::new(
-                            &mut self.user,
-                            &mut self.singletons,
-                            &mut self.app_state,
-                            &mut self.widget_state,
-                        );
-                        add_tool_window.show(ctx, &mut self.open_windows.add_tool_window);
-
-                        let mut add_holder_window = AddHolderWindow::new(
-                            &mut self.user,
-                            &mut self.singletons,
-                            &mut self.app_state,
-                            &mut self.widget_state,
-                        );
-                        add_holder_window.show(ctx, &mut self.open_windows.add_holder_window);
 
                         if let Some(machine_index) = self.user.user_data.selections.selected_machine
                         {
@@ -326,27 +296,9 @@ impl eframe::App for Application {
                     {
                         self.singletons.should_save_user_data = true;
                     }
-                    match self.central_view_state {
-                        CentralViewState::Library => {
-                            // Show library
-                            ui.label("Library");
-                            ui.label(format!(
-                                "Total tools: {:?}",
-                                self.user.user_data.library.tools.len()
-                            ));
-                            ui.label(format!(
-                                "Total holders: {:?}",
-                                self.user.user_data.library.holders.len()
-                            ));
-                            LibraryWidget::new(&mut self.user, &mut self.singletons).ui(ui);
-                            // TODO
-                        }
-                        CentralViewState::Magazine => {
-                            // Show magazine
-                            ui.label("Magazine");
-                            // TODO
-                        }
-                    }
+
+                    ui.label("Magazine");
+                    // Show magazine here
                 }
             };
         });

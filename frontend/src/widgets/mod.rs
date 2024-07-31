@@ -1,11 +1,10 @@
-pub mod add_holder;
 pub mod add_machine;
-pub mod add_tool;
 pub mod delete_machine;
 pub mod edit_machine;
 pub mod gripper_fixed_widget;
 pub mod gripper_widget;
-pub mod library_widget;
+pub mod magazine_widget;
+pub mod settings_window;
 pub mod sign_in;
 pub mod sign_up;
 pub mod welcome;

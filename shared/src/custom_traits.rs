@@ -33,16 +33,6 @@ pub trait GetDegree {
     fn get_degree(&self) -> f32;
 }
 
-pub trait GetSlot {
-    fn get_library_slot(&self) -> Option<usize>;
-    fn get_machine_slot(&self) -> Option<usize>;
-}
-
-pub trait SetSlot {
-    fn set_library_slot(&mut self, index: Option<usize>);
-    fn set_machine_slot(&mut self, index: Option<usize>);
-}
-
 pub trait GetHolderType {
     fn is_rotating(&self) -> bool;
     fn is_turning(&self) -> bool;
