@@ -7,4 +7,5 @@ pub mod magazine_widget;
 pub mod settings_window;
 pub mod sign_in;
 pub mod sign_up;
+pub mod unit_conversion;
 pub mod welcome;

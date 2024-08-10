@@ -10,6 +10,7 @@ use crate::widgets::gripper_widget::LatheBarGripperWindow;
 use crate::widgets::settings_window::SettingsWindow;
 use crate::widgets::sign_in::SignInWidget;
 use crate::widgets::sign_up::{show_status, SignUpWidget};
+use crate::widgets::unit_conversion::UnitConversionWindow;
 use crate::widgets::welcome::WelcomeWidget;
 #[cfg(target_arch = "wasm32")]
 use shared::settings::*;
@@ -128,8 +129,17 @@ impl eframe::App for Application {
                             self.widget_state = WidgetState::GripperFixedCalculation;
                             self.open_windows.gripper_fixed_window_open = true;
                         }
+                        if ui.button("Unit Conversion").clicked() {
+                            self.widget_state = WidgetState::UnitConversion;
+                            self.open_windows.unit_conversion_window = true;
+                        }
 
                         /* Below adds the windows */
+                        let mut unit_conversion_window =
+                            UnitConversionWindow::new(&mut self.singletons, &mut self.widget_state);
+                        unit_conversion_window
+                            .show(ctx, &mut self.open_windows.unit_conversion_window);
+
                         let mut settings_window = SettingsWindow::new(
                             &mut self.user.user_data.settings,
                             &mut self.singletons,

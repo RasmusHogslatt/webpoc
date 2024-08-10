@@ -11,6 +11,7 @@ use crate::{
     app_states::{FilterState, HolderTypeSelection, SortState, ToolTypeSelection},
     widgets::{
         gripper_fixed_widget::GripperFixedCalculationData, gripper_widget::GripperCalculationData,
+        unit_conversion::ConversionData,
     },
 };
 
@@ -30,6 +31,7 @@ pub struct Singletons {
     pub holder_type_selection: HolderTypeSelection,
     pub sort_state: SortState,
     pub filter_state: FilterState,
+    pub conversion_data: ConversionData,
 }
 
 impl Singletons {

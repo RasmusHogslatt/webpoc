@@ -57,6 +57,7 @@ pub enum WidgetState {
     GripperFixedCalculation,
     AddTool,
     AddHolder,
+    UnitConversion,
 }
 
 impl Default for WidgetState {
@@ -75,6 +76,7 @@ pub struct OpenWindows {
     pub settings_window_open: bool,
     pub add_tool_window: bool,
     pub add_holder_window: bool,
+    pub unit_conversion_window: bool,
 }
 
 impl OpenWindows {
@@ -87,5 +89,6 @@ impl OpenWindows {
         self.gripper_fixed_window_open = false;
         self.gripper_window_open = false;
         self.settings_window_open = false;
+        self.unit_conversion_window = false;
     }
 }
