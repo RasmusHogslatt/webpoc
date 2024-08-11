@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::{app_states::WidgetState, singletons::Singletons};
 use egui::{Context, Separator, Window};
 use serde::{Deserialize, Serialize};
@@ -13,373 +15,666 @@ pub struct LengthUnits {
     yd: f32,
 }
 
+pub const NUMBER_DECIMALS: usize = 4;
+
 impl LengthUnits {
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("length_units")
-            .num_columns(2)
-            .show(ui, |ui| {
-                if ui.add(egui::DragValue::new(&mut self.micrometer)).changed() {
-                    self.mm = micrometer_to_mm(self.micrometer);
-                    self.cm = micrometer_to_cm(self.micrometer);
-                    self.m = micrometer_to_m(self.micrometer);
-                    self.inch = micrometer_to_inch(self.micrometer);
-                    self.ft = micrometer_to_ft(self.micrometer);
-                    self.yd = micrometer_to_yd(self.micrometer);
-                }
-                ui.label("µm");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.mm)).changed() {
-                    self.micrometer = mm_to_micrometer(self.mm);
-                    self.cm = mm_to_cm(self.mm);
-                    self.m = mm_to_m(self.mm);
-                    self.inch = mm_to_inch(self.mm);
-                    self.ft = mm_to_ft(self.mm);
-                    self.yd = m_to_yd(self.mm);
-                }
-                ui.label("mm");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.cm)).changed() {
-                    self.micrometer = cm_to_micrometer(self.cm);
-                    self.mm = cm_to_mm(self.cm);
-                    self.m = cm_to_m(self.mm);
-                    self.inch = cm_to_inch(self.cm);
-                    self.ft = cm_to_ft(self.cm);
-                    self.yd = cm_to_yd(self.cm);
-                }
-                ui.label("cm");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.m)).changed() {
-                    self.micrometer = m_to_micrometer(self.m);
-                    self.mm = m_to_mm(self.m);
-                    self.cm = m_to_cm(self.m);
-                    self.inch = m_to_inch(self.m);
-                    self.ft = m_to_ft(self.m);
-                    self.yd = m_to_yd(self.m);
-                }
-                ui.label("m");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.inch)).changed() {
-                    self.micrometer = inch_to_micrometer(self.inch);
-                    self.mm = inch_to_mm(self.inch);
-                    self.cm = inch_to_cm(self.inch);
-                    self.m = inch_to_m(self.inch);
-                    self.ft = inch_to_ft(self.inch);
-                    self.yd = inch_to_yd(self.inch);
-                }
-                ui.label("in");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.ft)).changed() {
-                    self.micrometer = ft_to_micrometer(self.ft);
-                    self.mm = ft_to_mm(self.ft);
-                    self.cm = ft_to_cm(self.ft);
-                    self.m = ft_to_m(self.ft);
-                    self.inch = ft_to_inch(self.ft);
-                    self.yd = ft_to_yd(self.ft);
-                }
-                ui.label("ft");
-                ui.end_row();
-                if ui.add(egui::DragValue::new(&mut self.yd)).changed() {
-                    self.micrometer = yd_to_micrometer(self.yd);
-                    self.mm = yd_to_mm(self.yd);
-                    self.cm = yd_to_cm(self.yd);
-                    self.m = yd_to_m(self.yd);
-                    self.inch = yd_to_inch(self.yd);
-                    self.ft = yd_to_ft(self.yd);
-                }
-                ui.label("yd");
-                ui.end_row();
-            });
+        ui.group(|ui| {
+            egui::Grid::new("length_units")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.heading("Length");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.micrometer)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mm = micrometer_to_mm(self.micrometer);
+                        self.cm = micrometer_to_cm(self.micrometer);
+                        self.m = micrometer_to_m(self.micrometer);
+                        self.inch = micrometer_to_inch(self.micrometer);
+                        self.ft = micrometer_to_ft(self.micrometer);
+                        self.yd = micrometer_to_yd(self.micrometer);
+                    }
+                    ui.label("µm");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.mm)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = mm_to_micrometer(self.mm);
+                        self.cm = mm_to_cm(self.mm);
+                        self.m = mm_to_m(self.mm);
+                        self.inch = mm_to_inch(self.mm);
+                        self.ft = mm_to_ft(self.mm);
+                        self.yd = m_to_yd(self.mm);
+                    }
+                    ui.label("mm");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.cm)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = cm_to_micrometer(self.cm);
+                        self.mm = cm_to_mm(self.cm);
+                        self.m = cm_to_m(self.mm);
+                        self.inch = cm_to_inch(self.cm);
+                        self.ft = cm_to_ft(self.cm);
+                        self.yd = cm_to_yd(self.cm);
+                    }
+                    ui.label("cm");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.m)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = m_to_micrometer(self.m);
+                        self.mm = m_to_mm(self.m);
+                        self.cm = m_to_cm(self.m);
+                        self.inch = m_to_inch(self.m);
+                        self.ft = m_to_ft(self.m);
+                        self.yd = m_to_yd(self.m);
+                    }
+                    ui.label("m");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.inch)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = inch_to_micrometer(self.inch);
+                        self.mm = inch_to_mm(self.inch);
+                        self.cm = inch_to_cm(self.inch);
+                        self.m = inch_to_m(self.inch);
+                        self.ft = inch_to_ft(self.inch);
+                        self.yd = inch_to_yd(self.inch);
+                    }
+                    ui.label("in");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.ft)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = ft_to_micrometer(self.ft);
+                        self.mm = ft_to_mm(self.ft);
+                        self.cm = ft_to_cm(self.ft);
+                        self.m = ft_to_m(self.ft);
+                        self.inch = ft_to_inch(self.ft);
+                        self.yd = ft_to_yd(self.ft);
+                    }
+                    ui.label("ft");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.yd)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer = yd_to_micrometer(self.yd);
+                        self.mm = yd_to_mm(self.yd);
+                        self.cm = yd_to_cm(self.yd);
+                        self.m = yd_to_m(self.yd);
+                        self.inch = yd_to_inch(self.yd);
+                        self.ft = yd_to_ft(self.yd);
+                    }
+                    ui.label("yd");
+                });
+        });
     }
 }
 
 impl AreaUnits {
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("area_units").num_columns(2).show(ui, |ui| {
-            if ui
-                .add(egui::DragValue::new(&mut self.micrometer2))
-                .changed()
-            {
-                self.mm2 = micrometer2_to_mm2(self.micrometer2);
-                self.cm2 = micrometer2_to_cm2(self.micrometer2);
-                self.m2 = micrometer2_to_m2(self.micrometer2);
-                self.inch2 = micrometer2_to_inch2(self.micrometer2);
-                self.ft2 = micrometer2_to_ft2(self.micrometer2);
-                self.yd2 = micrometer2_to_yd2(self.micrometer2);
-            }
-            ui.label("µm²");
-            ui.end_row();
+        ui.group(|ui| {
+            egui::Grid::new("area_units").num_columns(2).show(ui, |ui| {
+                ui.heading("Area");
+                ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.micrometer2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.mm2 = micrometer2_to_mm2(self.micrometer2);
+                    self.cm2 = micrometer2_to_cm2(self.micrometer2);
+                    self.m2 = micrometer2_to_m2(self.micrometer2);
+                    self.inch2 = micrometer2_to_inch2(self.micrometer2);
+                    self.ft2 = micrometer2_to_ft2(self.micrometer2);
+                    self.yd2 = micrometer2_to_yd2(self.micrometer2);
+                }
+                ui.label("µm²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.mm2)).changed() {
-                self.micrometer2 = mm2_to_micrometer2(self.mm2);
-                self.cm2 = mm2_to_cm2(self.mm2);
-                self.m2 = mm2_to_m2(self.mm2);
-                self.inch2 = mm2_to_inch2(self.mm2);
-                self.ft2 = mm2_to_ft2(self.mm2);
-                self.yd2 = mm2_to_yd2(self.mm2);
-            }
-            ui.label("mm²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.mm2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = mm2_to_micrometer2(self.mm2);
+                    self.cm2 = mm2_to_cm2(self.mm2);
+                    self.m2 = mm2_to_m2(self.mm2);
+                    self.inch2 = mm2_to_inch2(self.mm2);
+                    self.ft2 = mm2_to_ft2(self.mm2);
+                    self.yd2 = mm2_to_yd2(self.mm2);
+                }
+                ui.label("mm²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.cm2)).changed() {
-                self.micrometer2 = cm2_to_micrometer2(self.cm2);
-                self.mm2 = cm2_to_mm2(self.cm2);
-                self.m2 = cm2_to_m2(self.cm2);
-                self.inch2 = cm2_to_inch2(self.cm2);
-                self.ft2 = cm2_to_ft2(self.cm2);
-                self.yd2 = cm2_to_yd2(self.cm2);
-            }
-            ui.label("cm²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.cm2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = cm2_to_micrometer2(self.cm2);
+                    self.mm2 = cm2_to_mm2(self.cm2);
+                    self.m2 = cm2_to_m2(self.cm2);
+                    self.inch2 = cm2_to_inch2(self.cm2);
+                    self.ft2 = cm2_to_ft2(self.cm2);
+                    self.yd2 = cm2_to_yd2(self.cm2);
+                }
+                ui.label("cm²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.m2)).changed() {
-                self.micrometer2 = m2_to_micrometer2(self.m2);
-                self.mm2 = m2_to_mm2(self.m2);
-                self.cm2 = m2_to_cm2(self.m2);
-                self.inch2 = m2_to_inch2(self.m2);
-                self.ft2 = m2_to_ft2(self.m2);
-                self.yd2 = m2_to_yd2(self.m2);
-            }
-            ui.label("m²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.m2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = m2_to_micrometer2(self.m2);
+                    self.mm2 = m2_to_mm2(self.m2);
+                    self.cm2 = m2_to_cm2(self.m2);
+                    self.inch2 = m2_to_inch2(self.m2);
+                    self.ft2 = m2_to_ft2(self.m2);
+                    self.yd2 = m2_to_yd2(self.m2);
+                }
+                ui.label("m²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.inch2)).changed() {
-                self.micrometer2 = inch2_to_micrometer2(self.inch2);
-                self.mm2 = inch2_to_mm2(self.inch2);
-                self.cm2 = inch2_to_cm2(self.inch2);
-                self.m2 = inch2_to_m2(self.inch2);
-                self.ft2 = inch2_to_ft2(self.inch2);
-                self.yd2 = inch2_to_yd2(self.inch2);
-            }
-            ui.label("in²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.inch2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = inch2_to_micrometer2(self.inch2);
+                    self.mm2 = inch2_to_mm2(self.inch2);
+                    self.cm2 = inch2_to_cm2(self.inch2);
+                    self.m2 = inch2_to_m2(self.inch2);
+                    self.ft2 = inch2_to_ft2(self.inch2);
+                    self.yd2 = inch2_to_yd2(self.inch2);
+                }
+                ui.label("in²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.ft2)).changed() {
-                self.micrometer2 = ft2_to_micrometer2(self.ft2);
-                self.mm2 = ft2_to_mm2(self.ft2);
-                self.cm2 = ft2_to_cm2(self.ft2);
-                self.m2 = ft2_to_m2(self.ft2);
-                self.inch2 = ft2_to_inch2(self.ft2);
-                self.yd2 = ft2_to_yd2(self.ft2);
-            }
-            ui.label("ft²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.ft2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = ft2_to_micrometer2(self.ft2);
+                    self.mm2 = ft2_to_mm2(self.ft2);
+                    self.cm2 = ft2_to_cm2(self.ft2);
+                    self.m2 = ft2_to_m2(self.ft2);
+                    self.inch2 = ft2_to_inch2(self.ft2);
+                    self.yd2 = ft2_to_yd2(self.ft2);
+                }
+                ui.label("ft²");
+                ui.end_row();
 
-            if ui.add(egui::DragValue::new(&mut self.yd2)).changed() {
-                self.micrometer2 = yd2_to_micrometer2(self.yd2);
-                self.mm2 = yd2_to_mm2(self.yd2);
-                self.cm2 = yd2_to_cm2(self.yd2);
-                self.m2 = yd2_to_m2(self.yd2);
-                self.inch2 = yd2_to_inch2(self.yd2);
-                self.ft2 = yd2_to_ft2(self.yd2);
-            }
-            ui.label("yd²");
-            ui.end_row();
+                if ui
+                    .add(
+                        egui::DragValue::new(&mut self.yd2)
+                            .fixed_decimals(NUMBER_DECIMALS)
+                            .clamp_to_range(true)
+                            .range(0.0..=f32::MAX),
+                    )
+                    .changed()
+                {
+                    self.micrometer2 = yd2_to_micrometer2(self.yd2);
+                    self.mm2 = yd2_to_mm2(self.yd2);
+                    self.cm2 = yd2_to_cm2(self.yd2);
+                    self.m2 = yd2_to_m2(self.yd2);
+                    self.inch2 = yd2_to_inch2(self.yd2);
+                    self.ft2 = yd2_to_ft2(self.yd2);
+                }
+                ui.label("yd²");
+            });
         });
     }
 }
 
 impl VolumeUnits {
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("volume_units")
-            .num_columns(2)
-            .show(ui, |ui| {
-                if ui
-                    .add(egui::DragValue::new(&mut self.micrometer3))
-                    .changed()
-                {
-                    self.mm3 = micrometer3_to_mm3(self.micrometer3);
-                    self.cm3 = micrometer3_to_cm3(self.micrometer3);
-                    self.m3 = micrometer3_to_m3(self.micrometer3);
-                    self.inch3 = micrometer3_to_inch3(self.micrometer3);
-                    self.ft3 = micrometer3_to_ft3(self.micrometer3);
-                    self.yd3 = micrometer3_to_yd3(self.micrometer3);
-                }
-                ui.label("µm³");
-                ui.end_row();
+        ui.group(|ui| {
+            egui::Grid::new("volume_units")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.heading("Volume");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.micrometer3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mm3 = micrometer3_to_mm3(self.micrometer3);
+                        self.cm3 = micrometer3_to_cm3(self.micrometer3);
+                        self.m3 = micrometer3_to_m3(self.micrometer3);
+                        self.inch3 = micrometer3_to_inch3(self.micrometer3);
+                        self.ft3 = micrometer3_to_ft3(self.micrometer3);
+                        self.yd3 = micrometer3_to_yd3(self.micrometer3);
+                    }
+                    ui.label("µm³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.mm3)).changed() {
-                    self.micrometer3 = mm3_to_micrometer3(self.mm3);
-                    self.cm3 = mm3_to_cm3(self.mm3);
-                    self.m3 = mm3_to_m3(self.mm3);
-                    self.inch3 = mm3_to_inch3(self.mm3);
-                    self.ft3 = mm3_to_ft3(self.mm3);
-                    self.yd3 = mm3_to_yd3(self.mm3);
-                }
-                ui.label("mm³");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.mm3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = mm3_to_micrometer3(self.mm3);
+                        self.cm3 = mm3_to_cm3(self.mm3);
+                        self.m3 = mm3_to_m3(self.mm3);
+                        self.inch3 = mm3_to_inch3(self.mm3);
+                        self.ft3 = mm3_to_ft3(self.mm3);
+                        self.yd3 = mm3_to_yd3(self.mm3);
+                    }
+                    ui.label("mm³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.cm3)).changed() {
-                    self.micrometer3 = cm3_to_micrometer3(self.cm3);
-                    self.mm3 = cm3_to_mm3(self.cm3);
-                    self.m3 = cm3_to_m3(self.cm3);
-                    self.inch3 = cm3_to_inch3(self.cm3);
-                    self.ft3 = cm3_to_ft3(self.cm3);
-                    self.yd3 = cm3_to_yd3(self.cm3);
-                }
-                ui.label("cm³");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.cm3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = cm3_to_micrometer3(self.cm3);
+                        self.mm3 = cm3_to_mm3(self.cm3);
+                        self.m3 = cm3_to_m3(self.cm3);
+                        self.inch3 = cm3_to_inch3(self.cm3);
+                        self.ft3 = cm3_to_ft3(self.cm3);
+                        self.yd3 = cm3_to_yd3(self.cm3);
+                    }
+                    ui.label("cm³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.m3)).changed() {
-                    self.micrometer3 = m3_to_micrometer3(self.m3);
-                    self.mm3 = m3_to_mm3(self.m3);
-                    self.cm3 = m3_to_cm3(self.m3);
-                    self.inch3 = m3_to_inch3(self.m3);
-                    self.ft3 = m3_to_ft3(self.m3);
-                    self.yd3 = m3_to_yd3(self.m3);
-                }
-                ui.label("m³");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.m3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = m3_to_micrometer3(self.m3);
+                        self.mm3 = m3_to_mm3(self.m3);
+                        self.cm3 = m3_to_cm3(self.m3);
+                        self.inch3 = m3_to_inch3(self.m3);
+                        self.ft3 = m3_to_ft3(self.m3);
+                        self.yd3 = m3_to_yd3(self.m3);
+                    }
+                    ui.label("m³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.inch3)).changed() {
-                    self.micrometer3 = inch3_to_micrometer3(self.inch3);
-                    self.mm3 = inch3_to_mm3(self.inch3);
-                    self.cm3 = inch3_to_cm3(self.inch3);
-                    self.m3 = inch3_to_m3(self.inch3);
-                    self.ft3 = inch3_to_ft3(self.inch3);
-                    self.yd3 = inch3_to_yd3(self.inch3);
-                }
-                ui.label("in³");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.inch3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = inch3_to_micrometer3(self.inch3);
+                        self.mm3 = inch3_to_mm3(self.inch3);
+                        self.cm3 = inch3_to_cm3(self.inch3);
+                        self.m3 = inch3_to_m3(self.inch3);
+                        self.ft3 = inch3_to_ft3(self.inch3);
+                        self.yd3 = inch3_to_yd3(self.inch3);
+                    }
+                    ui.label("in³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.ft3)).changed() {
-                    self.micrometer3 = ft3_to_micrometer3(self.ft3);
-                    self.mm3 = ft3_to_mm3(self.ft3);
-                    self.cm3 = ft3_to_cm3(self.ft3);
-                    self.m3 = ft3_to_m3(self.ft3);
-                    self.inch3 = ft3_to_inch3(self.ft3);
-                    self.yd3 = ft3_to_yd3(self.ft3);
-                }
-                ui.label("ft³");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.ft3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = ft3_to_micrometer3(self.ft3);
+                        self.mm3 = ft3_to_mm3(self.ft3);
+                        self.cm3 = ft3_to_cm3(self.ft3);
+                        self.m3 = ft3_to_m3(self.ft3);
+                        self.inch3 = ft3_to_inch3(self.ft3);
+                        self.yd3 = ft3_to_yd3(self.ft3);
+                    }
+                    ui.label("ft³");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.yd3)).changed() {
-                    self.micrometer3 = yd3_to_micrometer3(self.yd3);
-                    self.mm3 = yd3_to_mm3(self.yd3);
-                    self.cm3 = yd3_to_cm3(self.yd3);
-                    self.m3 = yd3_to_m3(self.yd3);
-                    self.inch3 = yd3_to_inch3(self.yd3);
-                    self.ft3 = yd3_to_ft3(self.yd3);
-                }
-                ui.label("yd³");
-                ui.end_row();
-            });
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.yd3)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.micrometer3 = yd3_to_micrometer3(self.yd3);
+                        self.mm3 = yd3_to_mm3(self.yd3);
+                        self.cm3 = yd3_to_cm3(self.yd3);
+                        self.m3 = yd3_to_m3(self.yd3);
+                        self.inch3 = yd3_to_inch3(self.yd3);
+                        self.ft3 = yd3_to_ft3(self.yd3);
+                    }
+                    ui.label("yd³");
+                });
+        });
     }
 }
 
 impl WeightUnits {
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("weight_units")
-            .num_columns(2)
-            .show(ui, |ui| {
-                if ui.add(egui::DragValue::new(&mut self.mg)).changed() {
-                    self.g = mg_to_g(self.mg);
-                    self.hg = mg_to_hg(self.mg);
-                    self.kg = mg_to_kg(self.mg);
-                    self.dr = mg_to_dr(self.mg);
-                    self.oz = mg_to_oz(self.mg);
-                    self.lb = mg_to_lb(self.mg);
-                }
-                ui.label("mg");
-                ui.end_row();
+        ui.group(|ui| {
+            egui::Grid::new("weight_units")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.heading("Weight");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.mg)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.g = mg_to_g(self.mg);
+                        self.hg = mg_to_hg(self.mg);
+                        self.kg = mg_to_kg(self.mg);
+                        self.dr = mg_to_dr(self.mg);
+                        self.oz = mg_to_oz(self.mg);
+                        self.lb = mg_to_lb(self.mg);
+                    }
+                    ui.label("mg");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.g)).changed() {
-                    self.mg = g_to_mg(self.g);
-                    self.hg = g_to_hg(self.g);
-                    self.kg = g_to_kg(self.g);
-                    self.dr = g_to_dr(self.g);
-                    self.oz = g_to_oz(self.g);
-                    self.lb = g_to_lb(self.g);
-                }
-                ui.label("g");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.g)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = g_to_mg(self.g);
+                        self.hg = g_to_hg(self.g);
+                        self.kg = g_to_kg(self.g);
+                        self.dr = g_to_dr(self.g);
+                        self.oz = g_to_oz(self.g);
+                        self.lb = g_to_lb(self.g);
+                    }
+                    ui.label("g");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.hg)).changed() {
-                    self.mg = hg_to_mg(self.hg);
-                    self.g = hg_to_g(self.hg);
-                    self.kg = hg_to_kg(self.hg);
-                    self.dr = hg_to_dr(self.hg);
-                    self.oz = hg_to_oz(self.hg);
-                    self.lb = hg_to_lb(self.hg);
-                }
-                ui.label("hg");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.hg)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = hg_to_mg(self.hg);
+                        self.g = hg_to_g(self.hg);
+                        self.kg = hg_to_kg(self.hg);
+                        self.dr = hg_to_dr(self.hg);
+                        self.oz = hg_to_oz(self.hg);
+                        self.lb = hg_to_lb(self.hg);
+                    }
+                    ui.label("hg");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.kg)).changed() {
-                    self.mg = kg_to_mg(self.kg);
-                    self.g = kg_to_g(self.kg);
-                    self.hg = kg_to_hg(self.kg);
-                    self.dr = kg_to_dr(self.kg);
-                    self.oz = kg_to_oz(self.kg);
-                    self.lb = kg_to_lb(self.kg);
-                }
-                ui.label("kg");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.kg)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = kg_to_mg(self.kg);
+                        self.g = kg_to_g(self.kg);
+                        self.hg = kg_to_hg(self.kg);
+                        self.dr = kg_to_dr(self.kg);
+                        self.oz = kg_to_oz(self.kg);
+                        self.lb = kg_to_lb(self.kg);
+                    }
+                    ui.label("kg");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.dr)).changed() {
-                    self.mg = dr_to_mg(self.dr);
-                    self.g = dr_to_g(self.dr);
-                    self.hg = dr_to_hg(self.dr);
-                    self.kg = dr_to_kg(self.dr);
-                    self.oz = dr_to_oz(self.dr);
-                    self.lb = dr_to_lb(self.dr);
-                }
-                ui.label("dr");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.dr)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = dr_to_mg(self.dr);
+                        self.g = dr_to_g(self.dr);
+                        self.hg = dr_to_hg(self.dr);
+                        self.kg = dr_to_kg(self.dr);
+                        self.oz = dr_to_oz(self.dr);
+                        self.lb = dr_to_lb(self.dr);
+                    }
+                    ui.label("dr");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.oz)).changed() {
-                    self.mg = oz_to_mg(self.oz);
-                    self.g = oz_to_g(self.oz);
-                    self.hg = oz_to_hg(self.oz);
-                    self.kg = oz_to_kg(self.oz);
-                    self.dr = oz_to_dr(self.oz);
-                    self.lb = oz_to_lb(self.oz);
-                }
-                ui.label("oz");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.oz)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = oz_to_mg(self.oz);
+                        self.g = oz_to_g(self.oz);
+                        self.hg = oz_to_hg(self.oz);
+                        self.kg = oz_to_kg(self.oz);
+                        self.dr = oz_to_dr(self.oz);
+                        self.lb = oz_to_lb(self.oz);
+                    }
+                    ui.label("oz");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.lb)).changed() {
-                    self.mg = lb_to_mg(self.lb);
-                    self.g = lb_to_g(self.lb);
-                    self.hg = lb_to_hg(self.lb);
-                    self.kg = lb_to_kg(self.lb);
-                    self.dr = lb_to_dr(self.lb);
-                    self.oz = lb_to_oz(self.lb);
-                }
-                ui.label("lb");
-                ui.end_row();
-            });
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.lb)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.mg = lb_to_mg(self.lb);
+                        self.g = lb_to_g(self.lb);
+                        self.hg = lb_to_hg(self.lb);
+                        self.kg = lb_to_kg(self.lb);
+                        self.dr = lb_to_dr(self.lb);
+                        self.oz = lb_to_oz(self.lb);
+                    }
+                    ui.label("lb");
+                });
+        });
     }
 }
 
 impl TemperatureUnits {
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("temperature_units")
-            .num_columns(2)
-            .show(ui, |ui| {
-                if ui.add(egui::DragValue::new(&mut self.kelvin)).changed() {
-                    self.degree = Self::kelvin_to_celsius(self.kelvin);
-                    self.fahrenheit = Self::kelvin_to_fahrenheit(self.kelvin);
-                }
-                ui.label("K");
-                ui.end_row();
+        ui.group(|ui| {
+            egui::Grid::new("temperature_units")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.heading("Temperature");
+                    ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.kelvin)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(0.0..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.degree = kelvin_to_celsius(self.kelvin);
+                        self.fahrenheit = kelvin_to_fahrenheit(self.kelvin);
+                    }
+                    ui.label("K");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.degree)).changed() {
-                    self.kelvin = Self::celsius_to_kelvin(self.degree);
-                    self.fahrenheit = Self::celsius_to_fahrenheit(self.degree);
-                }
-                ui.label("°C");
-                ui.end_row();
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.degree)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(-273.15..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.kelvin = celsius_to_kelvin(self.degree);
+                        self.fahrenheit = celsius_to_fahrenheit(self.degree);
+                    }
+                    ui.label("°C");
+                    ui.end_row();
 
-                if ui.add(egui::DragValue::new(&mut self.fahrenheit)).changed() {
-                    self.kelvin = Self::fahrenheit_to_kelvin(self.fahrenheit);
-                    self.degree = Self::fahrenheit_to_celsius(self.fahrenheit);
-                }
-                ui.label("°F");
-                ui.end_row();
-            });
+                    if ui
+                        .add(
+                            egui::DragValue::new(&mut self.fahrenheit)
+                                .fixed_decimals(NUMBER_DECIMALS)
+                                .clamp_to_range(true)
+                                .range(-459.67..=f32::MAX),
+                        )
+                        .changed()
+                    {
+                        self.kelvin = fahrenheit_to_kelvin(self.fahrenheit);
+                        self.degree = fahrenheit_to_celsius(self.fahrenheit);
+                    }
+                    ui.label("°F");
+                });
+        });
     }
 }
 
+impl AngleUnits {
+    fn ui(&mut self, ui: &mut egui::Ui) {
+        ui.group(|ui| {
+            egui::Grid::new("angle_units")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.heading("Angle");
+                    ui.end_row();
+                    if ui
+                        .add(egui::DragValue::new(&mut self.degree).fixed_decimals(NUMBER_DECIMALS))
+                        .changed()
+                    {
+                        self.radian = degree_to_radian(self.degree);
+                    }
+                    ui.label("°");
+                    ui.end_row();
+                    if ui
+                        .add(egui::DragValue::new(&mut self.radian).fixed_decimals(NUMBER_DECIMALS))
+                        .changed()
+                    {
+                        self.degree = radian_to_degree(self.radian);
+                    }
+                    ui.label("rad");
+                });
+        });
+    }
+}
+pub fn degree_to_radian(d: f32) -> f32 {
+    d * PI / 180.0
+}
+
+pub fn radian_to_degree(r: f32) -> f32 {
+    r * 180.0 / PI
+}
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AreaUnits {
     m2: f32,
@@ -413,11 +708,27 @@ pub struct WeightUnits {
     lb: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TemperatureUnits {
     pub kelvin: f32,
     pub degree: f32,
     pub fahrenheit: f32,
+}
+
+impl Default for TemperatureUnits {
+    fn default() -> Self {
+        TemperatureUnits {
+            kelvin: 0.0,
+            degree: -273.15,
+            fahrenheit: -459.67,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct AngleUnits {
+    pub degree: f32,
+    pub radian: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -427,28 +738,25 @@ pub struct ConversionData {
     pub volume: VolumeUnits,
     pub weight: WeightUnits,
     pub temperature: TemperatureUnits,
+    pub angle: AngleUnits,
 }
 
 impl ConversionData {
-    // Create one for each and use grid to place individual parts nicely
-    // Also move metric and and imperial length to one struct so all are updated at the same time
     fn ui(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("conversion_grid")
-            .min_col_width(100.0)
-            .max_col_width(200.0)
-            .num_columns(2)
-            .striped(true)
-            .show(ui, |ui| {
-                self.length.ui(ui);
-                ui.add(Separator::default().vertical());
-                self.area.ui(ui);
-                ui.end_row();
-                self.volume.ui(ui);
-                ui.add(Separator::default().vertical());
-                self.weight.ui(ui);
-                ui.end_row();
-                self.temperature.ui(ui);
+        ui.vertical(|ui| {
+            ui.columns(2, |ui| {
+                self.length.ui(&mut ui[0]);
+                self.area.ui(&mut ui[1]);
             });
+            ui.columns(2, |ui| {
+                self.volume.ui(&mut ui[0]);
+                self.weight.ui(&mut ui[1]);
+            });
+            ui.columns(2, |ui| {
+                self.temperature.ui(&mut ui[0]);
+                self.angle.ui(&mut ui[1]);
+            });
+        });
     }
 }
 
@@ -1051,28 +1359,26 @@ pub fn lb_to_oz(lb: f32) -> f32 {
 }
 
 // TEMPERATURE
-impl TemperatureUnits {
-    // Conversions from Kelvin
-    pub fn kelvin_to_celsius(k: f32) -> f32 {
-        k - 273.15
-    }
-    pub fn kelvin_to_fahrenheit(k: f32) -> f32 {
-        (k - 273.15) * 9.0 / 5.0 + 32.0
-    }
+// Conversions from Kelvin
+pub fn kelvin_to_celsius(k: f32) -> f32 {
+    k - 273.15
+}
+pub fn kelvin_to_fahrenheit(k: f32) -> f32 {
+    (k - 273.15) * 9.0 / 5.0 + 32.0
+}
 
-    // Conversions from Celsius
-    pub fn celsius_to_kelvin(c: f32) -> f32 {
-        c + 273.15
-    }
-    pub fn celsius_to_fahrenheit(c: f32) -> f32 {
-        c * 9.0 / 5.0 + 32.0
-    }
+// Conversions from Celsius
+pub fn celsius_to_kelvin(c: f32) -> f32 {
+    c + 273.15
+}
+pub fn celsius_to_fahrenheit(c: f32) -> f32 {
+    c * 9.0 / 5.0 + 32.0
+}
 
-    // Conversions from Fahrenheit
-    pub fn fahrenheit_to_kelvin(f: f32) -> f32 {
-        (f - 32.0) * 5.0 / 9.0 + 273.15
-    }
-    pub fn fahrenheit_to_celsius(f: f32) -> f32 {
-        (f - 32.0) * 5.0 / 9.0
-    }
+// Conversions from Fahrenheit
+pub fn fahrenheit_to_kelvin(f: f32) -> f32 {
+    (f - 32.0) * 5.0 / 9.0 + 273.15
+}
+pub fn fahrenheit_to_celsius(f: f32) -> f32 {
+    (f - 32.0) * 5.0 / 9.0
 }
