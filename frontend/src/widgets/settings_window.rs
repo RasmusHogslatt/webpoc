@@ -1,9 +1,6 @@
-use crate::{
-    app_states::{AppState, WidgetState},
-    singletons::Singletons,
-};
-use egui::{color_picker::Alpha, Context, Window};
-use shared::{magazine::Magazine, settings::Settings, User};
+use crate::{app_states::WidgetState, singletons::Singletons};
+use egui::{Context, Window};
+use shared::settings::Settings;
 
 pub struct SettingsWindow<'a> {
     settings: &'a mut Settings,
