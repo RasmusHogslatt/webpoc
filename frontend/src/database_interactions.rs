@@ -180,7 +180,7 @@ impl Application {
                 user_data: UserData::default(),
             };
             let response = client
-                .post("https://www.rasmushogslatt.com/")
+                .post("https://api.rasmushogslatt.com")
                 .json(&user)
                 .send()
                 .await?;
