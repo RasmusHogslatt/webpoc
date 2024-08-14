@@ -58,7 +58,6 @@ impl<'a> Widget for SignUpWidget<'a> {
     }
 }
 
-// The show_status function remains unchanged
 pub fn show_status(
     ui: &mut Ui,
     status: Option<bool>,

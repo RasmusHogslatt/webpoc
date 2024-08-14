@@ -91,7 +91,7 @@ impl Application {
                 user_data: UserData::default(),
             };
             let response = client
-                .post("http://138.68.94.119/api/login")
+                .post("https://api.rasmushogslatt.com")
                 .json(&user)
                 .send()
                 .await?;
@@ -134,7 +134,7 @@ impl Application {
         #[cfg(target_arch = "wasm32")]
         {
             let response = client
-                .post("http://138.68.94.119/api/update_user_data")
+                .post("https://api.rasmushogslatt.com")
                 .json(&user)
                 .send()
                 .await?;
