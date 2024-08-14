@@ -134,7 +134,7 @@ impl eframe::App for Application {
                             self.open_windows.unit_conversion_window = true;
                         }
 
-                        /* Below adds the windows */
+                        /* Add the windows */
                         let mut unit_conversion_window =
                             UnitConversionWindow::new(&mut self.singletons, &mut self.widget_state);
                         unit_conversion_window
