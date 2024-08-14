@@ -180,7 +180,7 @@ impl Application {
                 user_data: UserData::default(),
             };
             let response = client
-                .post("http://138.68.94.119/api/register")
+                .post("https://rasmushogslatt.com/api/register")
                 .json(&user)
                 .send()
                 .await?;
