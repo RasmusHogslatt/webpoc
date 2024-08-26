@@ -31,6 +31,10 @@ pub struct GripperCalculationData {
     pub gripper_overextension: f32,
     pub gripping_point: f32,
     pub margin_from_cut: f32,
+    pub claw_origin_offset: f32,
+    pub claw_max_grip_diameter: f32,
+    pub claw_total_diameter: f32,
+    // pub backdistancething
     // Machine data
     pub z_zero: f32,
     pub desired_safety_margin: f32,
@@ -87,6 +91,9 @@ impl Default for GripperCalculationData {
             offset_from_cut_color: Color32::from_rgba_unmultiplied(156, 100, 200, 255),
             total_possible_pieces: 0.0,
             unused_material: 0.0,
+            claw_origin_offset: 5.0,
+            claw_max_grip_diameter: 40.0,
+            claw_total_diameter: 45.0,
         }
     }
 }
@@ -380,37 +387,51 @@ impl<'a> LatheBarGripperWindow<'a> {
             data.desired_safety_margin,
         );
 
+        // GRIPPER START
         // Draw gripper overextension
         let gripper_extension_start = safety_margin_end;
         let gripper_extension_end =
             gripper_extension_start + data.gripper_overextension * scale_factor;
-        self.draw_section(
+        // self.draw_section(
+        //     &painter,
+        //     gripper_extension_start,
+        //     gripper_extension_end,
+        //     SEGMENT_HEIGHT,
+        //     TEXT_SEGMENT_OFFSET_SMALL,
+        //     center_y,
+        //     data.gripper_color,
+        //     "Gripper Extension",
+        //     true,
+        //     data.gripper_overextension,
+        // );
+        // // Arrow for gripping point
+        // let arrow_length = 85.0;
+        // painter.arrow(
+        //     Pos2::new(gripper_extension_end, above_bar_y - arrow_length),
+        //     Vec2::new(0.0, arrow_length),
+        //     Stroke::new(2.0, data.gripper_color),
+        // );
+        // let gripping_point_text = format!("Gripping Point: {:.2} mm", data.gripping_point);
+        // self.draw_text(
+        //     &painter,
+        //     &gripping_point_text,
+        //     Pos2::new(gripper_extension_end, above_bar_y - arrow_length - 20.0),
+        //     data.gripper_color,
+        // );
+        self.draw_claw(
             &painter,
-            gripper_extension_start,
             gripper_extension_end,
-            SEGMENT_HEIGHT,
-            TEXT_SEGMENT_OFFSET_SMALL,
+            1.0,
+            self.gripper_calculation_data.bar_diameter,
             center_y,
             data.gripper_color,
-            "Gripper Extension",
-            true,
+            "Custom claw",
             data.gripper_overextension,
-        );
-        // Arrow for gripping point
-        let arrow_length = 85.0;
-        painter.arrow(
-            Pos2::new(gripper_extension_end, above_bar_y - arrow_length),
-            Vec2::new(0.0, arrow_length),
-            Stroke::new(2.0, data.gripper_color),
+            40.0,
+            10.0,
         );
 
-        let gripping_point_text = format!("Gripping Point: {:.2} mm", data.gripping_point);
-        self.draw_text(
-            &painter,
-            &gripping_point_text,
-            Pos2::new(gripper_extension_end, above_bar_y - arrow_length - 20.0),
-            data.gripper_color,
-        );
+        // GRIPPER END
 
         // Draw offset from cut
         let offset_from_cut_start = gripper_extension_end;
@@ -521,6 +542,68 @@ impl<'a> LatheBarGripperWindow<'a> {
         );
     }
 
+    pub fn draw_claw(
+        &self,
+        painter: &Painter,
+        end: f32,
+        claw_width: f32,
+        diameter: f32,
+        center_y: f32,
+        color: Color32,
+        text: &str,
+        raw_value: f32,
+        arm_length: f32,
+        leg_length: f32,
+    ) -> f32 {
+        // Draw the circle
+        painter.circle_filled(Pos2::new(end, center_y), 5.0, color);
+
+        // Calculate the target y-coordinate (bottom of the bar)
+        let target_y = center_y - diameter / 2.0;
+
+        // Calculate the angle needed for alignment
+        let dx = leg_length;
+        let dy = target_y - center_y;
+        let required_angle = (dy / arm_length).atan();
+
+        // Calculate the rotated endpoints of the L shape
+        let (sin, cos) = required_angle.sin_cos();
+        let arm_end_x = end + arm_length * sin;
+        let arm_end_y = center_y - arm_length * cos;
+
+        // Calculate the leg endpoint
+        let leg_end_x = arm_end_x - leg_length * cos;
+        let leg_end_y = arm_end_y - leg_length * sin;
+
+        // Draw the vertical part of the L (arm)
+        painter.line_segment(
+            [Pos2::new(end, center_y), Pos2::new(arm_end_x, arm_end_y)],
+            Stroke::new(claw_width, color),
+        );
+
+        // Draw the horizontal part of the L (leg)
+        painter.line_segment(
+            [
+                Pos2::new(arm_end_x, arm_end_y),
+                Pos2::new(leg_end_x, leg_end_y),
+            ],
+            Stroke::new(claw_width, color),
+        );
+
+        // Draw the text
+        let text_pos = Pos2::new(leg_end_x + 10.0, leg_end_y);
+        painter.text(
+            text_pos,
+            Align2::LEFT_CENTER,
+            format!("{} ({:.2} mm)", text, raw_value),
+            FontId::default(),
+            color,
+        );
+
+        // Return the calculated angle in radians
+        required_angle
+    }
+
     pub fn draw_section(
         &self,
         painter: &Painter,
@@ -543,20 +626,6 @@ impl<'a> LatheBarGripperWindow<'a> {
                 0.0,
                 color,
             );
-            // painter.line_segment(
-            //     [
-            //         Pos2::new(start, bar_edge),
-            //         Pos2::new(start, bar_edge - segment_height),
-            //     ],
-            //     Stroke::new(1.0, color),
-            // );
-            // painter.line_segment(
-            //     [
-            //         Pos2::new(end, bar_edge),
-            //         Pos2::new(end, bar_edge - segment_height),
-            //     ],
-            //     Stroke::new(1.0, color),
-            // );
             // Center of segment to text
             painter.line_segment(
                 [
@@ -590,20 +659,6 @@ impl<'a> LatheBarGripperWindow<'a> {
                 0.0,
                 color,
             );
-            // painter.line_segment(
-            //     [
-            //         Pos2::new(start, bar_edge),
-            //         Pos2::new(start, bar_edge + segment_height),
-            //     ],
-            //     Stroke::new(1.0, color),
-            // );
-            // painter.line_segment(
-            //     [
-            //         Pos2::new(end, bar_edge),
-            //         Pos2::new(end, bar_edge + segment_height),
-            //     ],
-            //     Stroke::new(1.0, color),
-            // );
             // Center of segment to text
             painter.line_segment(
                 [
