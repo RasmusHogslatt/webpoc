@@ -59,7 +59,7 @@ pub struct GripperCalculationData {
     pub total_possible_pieces: f32,
     pub unused_material: f32,
 }
-
+//
 impl Default for GripperCalculationData {
     fn default() -> Self {
         Self {
