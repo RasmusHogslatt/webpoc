@@ -32,6 +32,3 @@ Note: Are there more categories of tools you want support for? If so, could they
 
 **Holder**
 What types of holders should be available
-
-# Image of current spreadsheet:
-![alt text](image.png)
