@@ -25,7 +25,7 @@ impl<'a> AddMachineWindow<'a> {
             app_state,
             widget_state,
         }
-    }
+    } //
 
     pub fn show(&mut self, ctx: &Context, open: &mut bool) {
         let mut should_close = false;
