@@ -22,6 +22,7 @@ async fn main() -> std::io::Result<()> {
     builder
         .set_certificate_chain_file("/etc/letsencrypt/live/rasmushogslatt.com/fullchain.pem")
         .unwrap();
+    //
 
     HttpServer::new(|| {
         let cors = Cors::default()
