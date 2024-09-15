@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix-web = "4.0"
+actix-web = { version = "4.9", features = ["openssl"] }
 actix-cors = "0.7"
 rusqlite = { version = "0.31.0", features = ["bundled-sqlcipher"] }
 shared = { path = "../shared" }
