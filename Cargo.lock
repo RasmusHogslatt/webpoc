@@ -693,6 +693,7 @@ dependencies = [
  "env_logger",
  "lazy_static",
  "log",
+ "openssl",
  "rusqlite",
  "serde",
  "serde_json",
